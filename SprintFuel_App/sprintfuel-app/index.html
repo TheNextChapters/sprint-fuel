@@ -1,0 +1,2912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sprint Fuel — Athlete Nutrition Tracker</title>
+
+<!-- PWA META -->
+<meta name="application-name" content="Sprint Fuel">
+<meta name="description" content="Athlete nutrition tracker for Bishop McDevitt sprint training">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sprint Fuel">
+<meta name="msapplication-TileColor" content="#0a0e1a">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230a0e1a'/><text x='256' y='360' font-size='300' text-anchor='middle'>⚡</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230a0e1a'/><text x='256' y='360' font-size='300' text-anchor='middle'>⚡</text></svg>">
+
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #222d42;
+  --border: #2a3550;
+  --gold: #F0A500;
+  --gold2: #FFD060;
+  --blue: #3B82F6;
+  --green: #22C55E;
+  --red: #EF4444;
+  --purple: #A855F7;
+  --teal: #14B8A6;
+  --orange: #F97316;
+  --text: #F1F5F9;
+  --muted: #64748B;
+  --muted2: #94A3B8;
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  background-image:
+    radial-gradient(ellipse at 10% 0%, rgba(59,130,246,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 100%, rgba(240,165,0,0.06) 0%, transparent 50%);
+}
+
+/* ── HEADER ── */
+header {
+  background: linear-gradient(135deg, #0D1B36 0%, #111827 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 24px 16px;
+  position: sticky; top: 0; z-index: 200;
+  backdrop-filter: blur(12px);
+}
+.hdr-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.logo {
+  display: flex; align-items: center; gap: 12px;
+}
+.logo-icon {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--gold), #FF8C00);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 2px;
+  color: var(--text); line-height: 1;
+}
+.logo-text span { color: var(--gold); }
+.logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+
+.date-display {
+  text-align: right;
+}
+.date-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 1px; color: var(--gold2);
+}
+.date-sub { font-size: 11px; color: var(--muted); }
+
+/* DAY NAV */
+.day-nav {
+  max-width: 900px; margin: 0 auto;
+  display: flex; gap: 6px; overflow-x: auto;
+  padding: 16px 24px 0; scrollbar-width: none;
+}
+.day-nav::-webkit-scrollbar { display: none; }
+.day-btn {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: none;
+  color: var(--muted2);
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: all .2s;
+}
+.day-btn:hover { border-color: var(--gold); color: var(--gold); }
+.day-btn.active { background: var(--gold); border-color: var(--gold); color: #000; }
+.day-btn.has-data::after { content: '•'; margin-left: 4px; color: var(--green); }
+
+/* ── MAIN ── */
+.main {
+  max-width: 900px; margin: 0 auto;
+  padding: 20px 24px 80px;
+}
+
+/* ── MACRO RINGS ── */
+.macro-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+@media(max-width:600px){ .macro-bar { grid-template-columns: repeat(2,1fr); } }
+
+.macro-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 14px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.macro-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.macro-card.cal::before { background: linear-gradient(90deg, var(--gold), var(--orange)); }
+.macro-card.pro::before { background: linear-gradient(90deg, var(--blue), #60A5FA); }
+.macro-card.carb::before { background: linear-gradient(90deg, var(--green), #86EFAC); }
+.macro-card.fat::before { background: linear-gradient(90deg, var(--purple), #C084FC); }
+
+.macro-label {
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.macro-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px; letter-spacing: 1px; line-height: 1;
+}
+.macro-val.cal { color: var(--gold); }
+.macro-val.pro { color: var(--blue); }
+.macro-val.carb { color: var(--green); }
+.macro-val.fat { color: var(--purple); }
+.macro-unit { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.macro-goal { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+.macro-ring-wrap {
+  position: relative; width: 56px; height: 56px;
+  margin: 8px auto 0;
+}
+.macro-ring-wrap svg { transform: rotate(-90deg); }
+.ring-bg { fill: none; stroke: var(--surface3); stroke-width: 5; }
+.ring-fill { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset .5s ease; }
+.ring-fill.cal { stroke: var(--gold); }
+.ring-fill.pro { stroke: var(--blue); }
+.ring-fill.carb { stroke: var(--green); }
+.ring-fill.fat { stroke: var(--purple); }
+.ring-pct {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 11px; font-weight: 800; color: var(--text);
+}
+
+/* ── HYDRATION BAR ── */
+.hydration-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.section-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px; letter-spacing: 2px; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title .ico { font-size: 16px; }
+
+.drinks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px; margin-bottom: 14px;
+}
+.drink-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 13px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer; transition: all .15s;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 700;
+}
+.drink-btn:hover { transform: scale(1.03); }
+.drink-btn.water:hover, .drink-btn.water.active-drink { border-color: var(--teal); background: rgba(20,184,166,.12); }
+.drink-btn.bodyarmor:hover, .drink-btn.bodyarmor.active-drink { border-color: #F97316; background: rgba(249,115,22,.12); }
+.drink-btn.diet:hover, .drink-btn.diet.active-drink { border-color: var(--purple); background: rgba(168,85,247,.12); }
+.drink-btn.gatorade:hover, .drink-btn.gatorade.active-drink { border-color: #22C55E; background: rgba(34,197,94,.12); }
+.drink-btn.milk:hover, .drink-btn.milk.active-drink { border-color: #F1F5F9; background: rgba(241,245,249,.08); }
+.drink-btn.oj:hover, .drink-btn.oj.active-drink { border-color: var(--gold); background: rgba(240,165,0,.12); }
+.drink-btn.custom-drink:hover, .drink-btn.custom-drink.active-drink { border-color: var(--blue); background: rgba(59,130,246,.12); }
+.drink-ico { font-size: 20px; flex-shrink: 0; }
+.drink-info { flex:1; min-width:0; }
+.drink-name { font-size: 12px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drink-cal { font-size: 10px; color: var(--muted); }
+
+.drink-log {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  min-height: 36px;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border);
+  align-items: center;
+}
+.drink-log-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+.drink-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: opacity .15s;
+  animation: popIn .2s ease;
+}
+@keyframes popIn { from{transform:scale(0.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+.drink-chip:hover { opacity: .75; }
+.drink-chip .chip-x { font-size: 10px; margin-left: 2px; }
+
+.water-total {
+  margin-top: 10px;
+  display: flex; align-items: center; gap: 12px;
+}
+.water-bar-wrap {
+  flex: 1;
+  height: 8px;
+  background: var(--surface3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.water-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--teal), #67E8F9);
+  transition: width .4s ease;
+}
+.water-label { font-size: 12px; color: var(--teal); font-weight: 800; white-space: nowrap; }
+
+/* ── MEAL SECTIONS ── */
+.meals-wrap { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+
+.meal-section {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.meal-section:focus-within { border-color: rgba(240,165,0,.4); }
+
+.meal-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.meal-hdr-left { display: flex; align-items: center; gap: 10px; }
+.meal-icon-wrap {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.meal-icon-wrap.breakfast { background: rgba(240,165,0,.15); }
+.meal-icon-wrap.snack1    { background: rgba(34,197,94,.15); }
+.meal-icon-wrap.lunch     { background: rgba(59,130,246,.15); }
+.meal-icon-wrap.snack2    { background: rgba(34,197,94,.15); }
+.meal-icon-wrap.dinner    { background: rgba(168,85,247,.15); }
+.meal-icon-wrap.evening   { background: rgba(20,184,166,.15); }
+
+.meal-name-wrap { }
+.meal-name { font-size: 14px; font-weight: 800; }
+.meal-cal-summary { font-size: 11px; color: var(--muted); }
+
+.meal-total-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 1px;
+  color: var(--gold);
+}
+.meal-toggle { color: var(--muted); font-size: 14px; margin-left: 8px; transition: transform .2s; }
+.meal-toggle.open { transform: rotate(180deg); }
+
+.meal-body { padding: 14px 18px; }
+
+/* FOOD ENTRY TABLE */
+.food-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.food-table th {
+  font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); text-align: left; padding: 0 6px 8px;
+}
+.food-table th.right, .food-table td.right { text-align: right; }
+.food-row td {
+  padding: 6px;
+  border-top: 1px solid var(--border);
+  font-size: 13px; vertical-align: middle;
+}
+.food-name-cell { font-weight: 700; color: var(--text); }
+.food-macro-cell { color: var(--muted2); font-size: 12px; }
+.food-cal-cell { font-weight: 800; color: var(--gold); font-size: 13px; }
+.del-btn {
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 14px; padding: 2px 6px;
+  border-radius: 4px; transition: all .15s;
+}
+.del-btn:hover { background: rgba(239,68,68,.15); color: var(--red); }
+
+/* ADD FOOD ROW */
+.add-food-row {
+  display: grid;
+  grid-template-columns: 2fr 80px 70px 70px 70px 44px;
+  gap: 6px; align-items: center;
+}
+@media(max-width:600px){
+  .add-food-row { grid-template-columns: 1fr 1fr; }
+  .add-food-row .add-btn { grid-column: span 2; }
+}
+.add-input {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 600;
+  outline: none;
+  transition: border-color .2s;
+  width: 100%;
+}
+.add-input:focus { border-color: var(--gold); }
+.add-input::placeholder { color: var(--muted); }
+.add-input.num { text-align: center; }
+
+.add-btn {
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  border: none; border-radius: var(--radius-sm);
+  padding: 9px; cursor: pointer;
+  font-size: 18px; font-weight: 900; color: #000;
+  transition: opacity .15s, transform .1s;
+  width: 100%;
+}
+.add-btn:hover { opacity: .9; transform: scale(1.05); }
+.add-btn:active { transform: scale(.97); }
+
+/* QUICK ADD */
+.quick-add-wrap { margin-top: 10px; }
+.quick-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.quick-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick-chip {
+  padding: 4px 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  color: var(--muted2); cursor: pointer;
+  transition: all .15s;
+}
+.quick-chip:hover { border-color: var(--gold); color: var(--gold); background: rgba(240,165,0,.08); }
+
+/* ── DAILY SUMMARY ── */
+.summary-card {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.summary-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px; letter-spacing: 2px;
+  color: var(--gold2); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.summary-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+@media(max-width:500px){ .summary-grid { grid-template-columns: 1fr; } }
+.summary-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 14px;
+  background: var(--surface3);
+  border-radius: var(--radius-sm);
+}
+.s-label { font-size: 12px; color: var(--muted); font-weight: 700; }
+.s-val { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px; }
+.s-val.cal { color: var(--gold); }
+.s-val.pro { color: var(--blue); }
+.s-val.carb { color: var(--green); }
+.s-val.fat { color: var(--purple); }
+.s-val.water { color: var(--teal); }
+.s-val.drinks { color: var(--orange); }
+
+/* GOAL PROGRESS */
+.goal-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.goal-row { }
+.goal-row-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.goal-name { font-size: 11px; font-weight: 800; color: var(--muted2); }
+.goal-nums { font-size: 11px; color: var(--muted); }
+.prog-bar { height: 6px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+.prog-fill.cal { background: linear-gradient(90deg, var(--gold), var(--orange)); }
+.prog-fill.pro { background: linear-gradient(90deg, var(--blue), #60A5FA); }
+.prog-fill.carb { background: linear-gradient(90deg, var(--green), #86EFAC); }
+.prog-fill.fat { background: linear-gradient(90deg, var(--purple), #C084FC); }
+
+/* ATHLETE STATUS */
+.status-banner {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  margin-top: 14px;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; font-weight: 700; line-height: 1.4;
+  border: 1.5px solid transparent;
+}
+.status-banner.good { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.3); color: #86EFAC; }
+.status-banner.warn { background: rgba(240,165,0,.1); border-color: rgba(240,165,0,.3); color: var(--gold2); }
+.status-banner.low  { background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); color: #FCA5A5; }
+.status-ico { font-size: 22px; flex-shrink: 0; }
+
+/* GOALS EDITOR */
+.goals-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.goals-hdr {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.goals-body { padding: 16px 18px; display: none; }
+.goals-body.open { display: block; }
+.goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media(max-width:500px){ .goals-grid { grid-template-columns: 1fr; } }
+.goal-field label { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 5px; }
+.goal-field input {
+  width: 100%;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 9px 12px;
+  color: var(--text); font-family: 'Nunito', sans-serif;
+  font-size: 14px; font-weight: 700; outline: none;
+  transition: border-color .2s;
+}
+.goal-field input:focus { border-color: var(--gold); }
+.save-goals-btn {
+  margin-top: 14px; width: 100%; padding: 11px;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  border: none; border-radius: var(--radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px; font-weight: 800; color: #000;
+  cursor: pointer; transition: opacity .15s;
+}
+.save-goals-btn:hover { opacity: .9; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 30px; right: 24px;
+  background: var(--surface2); border: 1.5px solid var(--green);
+  border-radius: 10px; padding: 12px 20px;
+  font-size: 13px; font-weight: 700; color: var(--green);
+  z-index: 999; opacity: 0; transform: translateY(12px);
+  transition: all .25s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* RESET BTN */
+.reset-btn {
+  width: 100%; padding: 11px;
+  background: rgba(239,68,68,.1); border: 1.5px solid rgba(239,68,68,.3);
+  border-radius: var(--radius-sm);
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 800; color: #FCA5A5;
+  cursor: pointer; transition: all .15s;
+  margin-top: 10px;
+}
+.reset-btn:hover { background: rgba(239,68,68,.2); }
+
+/* ── FOOD DATABASE MODAL ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.75); backdrop-filter:blur(6px);
+  z-index:500; align-items:flex-end; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.food-modal {
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:20px 20px 0 0;
+  width:100%; max-width:680px;
+  max-height:88vh;
+  display:flex; flex-direction:column;
+  animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-hdr {
+  padding:18px 20px 14px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0;
+}
+.modal-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px; letter-spacing:2px; color:var(--gold2);
+  display:flex; align-items:center; gap:8px;
+}
+.modal-close {
+  background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:8px; padding:6px 12px;
+  color:var(--muted2); cursor:pointer; font-size:13px; font-weight:700;
+  transition:all .15s;
+}
+.modal-close:hover { border-color:var(--red); color:var(--red); }
+
+/* SEARCH BAR */
+.db-search-wrap {
+  padding:14px 20px; border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.db-search-row { display:flex; gap:8px; align-items:center; }
+.db-search-input {
+  flex:1; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:10px; padding:10px 14px;
+  color:var(--text); font-family:'Nunito',sans-serif;
+  font-size:14px; font-weight:600; outline:none;
+  transition:border-color .2s;
+}
+.db-search-input:focus { border-color:var(--gold); }
+.db-search-input::placeholder { color:var(--muted); }
+.ai-search-btn {
+  display:flex; align-items:center; gap:6px;
+  padding:10px 16px;
+  background:linear-gradient(135deg,#3B82F6,#6366F1);
+  border:none; border-radius:10px;
+  color:white; font-family:'Nunito',sans-serif;
+  font-size:13px; font-weight:800; cursor:pointer;
+  transition:opacity .15s, transform .1s; white-space:nowrap;
+}
+.ai-search-btn:hover { opacity:.9; transform:scale(1.03); }
+.ai-search-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.ai-search-btn .btn-ico { font-size:16px; }
+
+/* AI RESULTS */
+.ai-results-panel {
+  margin-top:10px; padding:12px 14px;
+  background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(99,102,241,.06));
+  border:1.5px solid rgba(99,102,241,.3);
+  border-radius:10px; display:none;
+}
+.ai-results-panel.open { display:block; }
+.ai-status { font-size:12px; color:#93C5FD; margin-bottom:8px; font-weight:700; }
+.ai-result-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 10px; border-radius:8px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  margin-bottom:6px; cursor:pointer;
+  transition:all .15s;
+}
+.ai-result-item:hover { background:rgba(240,165,0,.08); border-color:rgba(240,165,0,.3); }
+.ai-result-item:last-child { margin-bottom:0; }
+.ai-res-name { font-size:13px; font-weight:700; color:var(--text); }
+.ai-res-macros { font-size:11px; color:var(--muted2); margin-top:2px; }
+.ai-res-cal { font-family:'Bebas Neue',sans-serif; font-size:20px; color:var(--gold); margin-left:12px; flex-shrink:0; }
+.ai-loading {
+  display:flex; align-items:center; gap:10px;
+  font-size:13px; color:#93C5FD; font-weight:600;
+}
+.spinner {
+  width:16px; height:16px; border-radius:50%;
+  border:2px solid rgba(99,102,241,.3);
+  border-top-color:#6366F1;
+  animation:spin .7s linear infinite; flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* CATEGORY TABS */
+.cat-tabs {
+  display:flex; gap:6px; overflow-x:auto; padding:12px 20px 0;
+  flex-shrink:0; scrollbar-width:none;
+}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab {
+  padding:6px 13px; border-radius:20px;
+  border:1.5px solid var(--border);
+  background:none; color:var(--muted2);
+  font-family:'Nunito',sans-serif;
+  font-size:12px; font-weight:700;
+  cursor:pointer; white-space:nowrap; transition:all .15s;
+}
+.cat-tab:hover { border-color:var(--gold); color:var(--gold); }
+.cat-tab.active { background:var(--gold); border-color:var(--gold); color:#000; }
+
+/* FOOD LIST */
+.food-list-wrap { flex:1; overflow-y:auto; padding:10px 20px 20px; }
+.food-list-wrap::-webkit-scrollbar { width:4px; }
+.food-list-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.food-db-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border-radius:10px;
+  border:1px solid transparent;
+  cursor:pointer; transition:all .15s;
+  margin-bottom:4px;
+}
+.food-db-item:hover { background:var(--surface2); border-color:var(--border); }
+.food-db-left { flex:1; }
+.food-db-name { font-size:13px; font-weight:700; color:var(--text); }
+.food-db-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.food-db-macros { display:flex; gap:12px; margin-top:4px; }
+.fmac { font-size:11px; font-weight:700; }
+.fmac.p { color:var(--blue); }
+.fmac.c { color:var(--green); }
+.fmac.f { color:var(--purple); }
+.food-db-cal {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:22px; color:var(--gold); margin-left:12px; flex-shrink:0;
+}
+.food-db-add {
+  width:30px; height:30px; border-radius:8px;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  border:none; color:#000; font-size:18px; font-weight:900;
+  cursor:pointer; transition:transform .1s; flex-shrink:0; margin-left:8px;
+}
+.food-db-add:hover { transform:scale(1.1); }
+
+/* MEAL SELECTOR */
+
+/* Active meal badge in modal header */
+.active-meal-badge {
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  color: #000; font-size: 12px; font-weight: 800;
+  padding: 4px 12px; border-radius: 20px; white-space: nowrap;
+}
+/* Meal selector row at TOP of modal */
+.meal-select-row {
+  display:flex; gap:5px; flex-wrap:wrap;
+  padding:10px 16px 8px; border-bottom:1px solid var(--border);
+  flex-shrink:0; background: var(--surface2);
+}
+
+.meal-sel-btn {
+  flex:1; min-width:70px; padding:7px 8px; text-align:center;
+  border-radius:8px; border:1.5px solid var(--border);
+  background:none; color:var(--muted2);
+  font-family:'Nunito',sans-serif; font-size:11px; font-weight:700;
+  cursor:pointer; transition:all .15s;
+}
+.meal-sel-btn.selected { background:var(--gold); border-color:var(--gold); color:#000; }
+
+/* OPEN DB BUTTON */
+.open-db-btn {
+  width:100%; padding:12px;
+  background:linear-gradient(135deg,var(--surface2),var(--surface3));
+  border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);
+  font-family:'Nunito',sans-serif;
+  font-size:14px; font-weight:800; color:var(--gold2);
+  cursor:pointer; transition:all .2s;
+  margin-bottom:12px;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.open-db-btn:hover { border-color:var(--gold); background:rgba(240,165,0,.06); transform:translateY(-1px); }
+.no-results { text-align:center; padding:30px; color:var(--muted); font-size:13px; font-style:italic; }
+
+/* ── INSTALL BANNER ── */
+@keyframes slideDown { from{transform:translateY(-100%);opacity:0;} to{transform:translateY(0);opacity:1;} }
+.install-banner {
+  display: none !important;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  background: linear-gradient(135deg, #0D2245, #1a3a6b);
+  border-bottom: 2px solid var(--gold);
+  padding: 12px 20px;
+  align-items: center; gap: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.5);
+}
+.install-ico { font-size: 28px; flex-shrink: 0; }
+.install-text { flex: 1; }
+.install-title { font-size: 14px; font-weight: 800; color: var(--gold2); line-height: 1.2; }
+.install-sub { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 2px; }
+.install-cta {
+  padding: 8px 18px;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  border: none; border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 800; color: #000;
+  cursor: pointer; white-space: nowrap;
+  transition: opacity .15s;
+  flex-shrink: 0;
+}
+.install-cta:hover { opacity: .85; }
+.install-dismiss {
+  background: none; border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 8px; padding: 6px 10px;
+  color: rgba(255,255,255,.5); cursor: pointer;
+  font-size: 12px; font-weight: 700;
+  transition: all .15s; flex-shrink: 0;
+}
+.install-dismiss:hover { border-color: rgba(255,255,255,.5); color: white; }
+
+/* PWA safe area for notched phones */
+body.is-pwa header { padding-top: max(20px, env(safe-area-inset-top)); }
+body.is-pwa .main  { padding-bottom: max(80px, env(safe-area-inset-bottom)); }
+
+/* Offline indicator */
+.offline-pill {
+  display: none;
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: #374151; border: 1px solid #4B5563;
+  border-radius: 20px; padding: 6px 16px;
+  font-size: 12px; font-weight: 700; color: #9CA3AF;
+  z-index: 800;
+}
+body.offline .offline-pill { display: block; }
+
+</style>
+
+<style>
+  /* When launched via the .bat launcher in Chrome App Mode */
+  @media (display-mode: standalone), (display-mode: window-controls-overlay) {
+    .install-banner { display: none !important; }
+    body { padding-top: 0; }
+  }
+
+/* Active brand chip */
+.quick-chip.active-chip {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+}
+
+
+/* ══════════════════════════════════════════
+   CAMERA / AI FOOD SCANNER
+══════════════════════════════════════════ */
+.scan-fab {
+  position: fixed;
+  bottom: 28px; right: 20px;
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  border: none;
+  box-shadow: 0 4px 24px rgba(99,102,241,.5);
+  cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 400;
+  transition: transform .2s, box-shadow .2s;
+  color: white;
+  font-size: 26px;
+  line-height: 1;
+}
+.scan-fab:hover { transform: scale(1.1); box-shadow: 0 6px 32px rgba(99,102,241,.7); }
+.scan-fab:active { transform: scale(.95); }
+.scan-fab-label { font-size: 9px; font-weight: 800; letter-spacing: .5px; margin-top: 1px; font-family: "Nunito", sans-serif; }
+
+/* SCANNER MODAL */
+.scan-modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.9);
+  z-index: 600;
+  flex-direction: column;
+  align-items: center; justify-content: flex-start;
+}
+.scan-modal-overlay.open { display: flex; }
+
+.scan-modal {
+  width: 100%; max-width: 560px;
+  background: var(--surface);
+  border-radius: 0 0 20px 20px;
+  border: 1.5px solid var(--border);
+  border-top: none;
+  display: flex; flex-direction: column;
+  max-height: 96vh;
+  overflow: hidden;
+}
+
+.scan-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.1));
+  flex-shrink: 0;
+}
+.scan-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 20px; letter-spacing: 2px;
+  color: #C4B5FD;
+  display: flex; align-items: center; gap: 8px;
+}
+.scan-close {
+  background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 8px; padding: 6px 12px;
+  color: var(--muted2); cursor: pointer; font-size: 13px; font-weight: 700;
+  transition: all .15s;
+}
+.scan-close:hover { border-color: var(--red); color: var(--red); }
+
+/* CAMERA AREA */
+.scan-camera-wrap {
+  position: relative; flex-shrink: 0;
+  background: #000;
+  width: 100%;
+  aspect-ratio: 4/3;
+  max-height: 280px;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+#scanVideo {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none;
+}
+#scanCanvas { display: none; }
+.scan-placeholder {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; padding: 30px;
+  text-align: center;
+  color: var(--muted);
+}
+.scan-placeholder-ico { font-size: 52px; opacity: .4; }
+.scan-placeholder-txt { font-size: 13px; line-height: 1.5; }
+
+/* SCAN OVERLAY CORNERS */
+.scan-corners {
+  position: absolute; inset: 16px;
+  pointer-events: none;
+  display: none;
+}
+.scan-corners.show { display: block; }
+.scan-corner {
+  position: absolute;
+  width: 22px; height: 22px;
+  border-color: #A78BFA;
+  border-style: solid;
+  border-width: 0;
+}
+.sc-tl { top:0; left:0; border-top-width:3px; border-left-width:3px; border-radius: 3px 0 0 0; }
+.sc-tr { top:0; right:0; border-top-width:3px; border-right-width:3px; border-radius: 0 3px 0 0; }
+.sc-bl { bottom:0; left:0; border-bottom-width:3px; border-left-width:3px; border-radius: 0 0 0 3px; }
+.sc-br { bottom:0; right:0; border-bottom-width:3px; border-right-width:3px; border-radius: 0 0 3px 0; }
+
+/* SCAN CONTROLS */
+.scan-controls {
+  padding: 12px 16px;
+  display: flex; gap: 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+.scan-btn {
+  flex: 1; min-width: 100px;
+  padding: 10px 8px;
+  border-radius: 10px; border: none;
+  font-family: "Nunito", sans-serif;
+  font-size: 13px; font-weight: 800;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.scan-btn.primary {
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  color: white;
+}
+.scan-btn.secondary {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  color: var(--muted2);
+}
+.scan-btn.secondary:hover { border-color: #6366F1; color: #A78BFA; }
+.scan-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* UPLOAD */
+#scanUploadInput { display: none; }
+
+/* PREVIEW */
+.scan-preview-wrap {
+  flex-shrink: 0;
+  display: none;
+  position: relative;
+  background: #000;
+  max-height: 200px;
+  overflow: hidden;
+}
+.scan-preview-wrap.show { display: block; }
+#scanPreview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  display: block;
+}
+.scan-preview-badge {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(0,0,0,.7); border: 1px solid #6366F1;
+  border-radius: 6px; padding: 3px 10px;
+  font-size: 11px; font-weight: 700; color: #A78BFA;
+}
+
+/* ANALYZE BTN */
+.scan-analyze-row {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.scan-analyze-btn {
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  border: none; border-radius: 10px;
+  font-family: "Nunito", sans-serif;
+  font-size: 15px; font-weight: 800; color: white;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.scan-analyze-btn:hover { opacity: .9; transform: scale(1.01); }
+.scan-analyze-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+/* RESULTS */
+.scan-results {
+  flex: 1; overflow-y: auto;
+  padding: 14px 16px;
+}
+.scan-results::-webkit-scrollbar { width: 3px; }
+.scan-results::-webkit-scrollbar-thumb { background: var(--border); }
+
+.scan-result-hdr {
+  font-size: 12px; font-weight: 800; letter-spacing: 1px;
+  color: #A78BFA; margin-bottom: 10px; text-transform: uppercase;
+}
+.scan-result-desc {
+  font-size: 13px; color: var(--muted2); line-height: 1.6;
+  margin-bottom: 14px; padding: 10px 12px;
+  background: rgba(99,102,241,.07);
+  border: 1px solid rgba(99,102,241,.2);
+  border-radius: 8px;
+}
+.scan-food-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px; margin-bottom: 8px;
+  cursor: pointer; transition: all .15s;
+}
+.scan-food-item:hover { border-color: #6366F1; background: rgba(99,102,241,.08); }
+.scan-food-left { flex: 1; }
+.scan-food-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.scan-food-macros { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.scan-food-cal {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 24px; color: #A78BFA; margin: 0 8px;
+}
+.scan-add-btn {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  border: none; border-radius: 8px;
+  color: white; font-size: 18px; font-weight: 900;
+  cursor: pointer; transition: transform .1s; flex-shrink: 0;
+}
+.scan-add-btn:hover { transform: scale(1.1); }
+
+.scan-meal-target-row {
+  display: flex; gap: 5px; flex-wrap: wrap;
+  padding: 10px 16px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  flex-shrink: 0;
+}
+.scan-meal-btn {
+  flex: 1; min-width: 60px; padding: 6px 5px; text-align: center;
+  border-radius: 8px; border: 1.5px solid var(--border);
+  background: none; color: var(--muted2);
+  font-family: "Nunito", sans-serif; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+}
+.scan-meal-btn.selected { background: #6366F1; border-color: #6366F1; color: white; }
+
+.scan-status {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; color: #A78BFA; font-weight: 600;
+  padding: 12px 16px;
+}
+.scan-error {
+  font-size: 13px; color: #FCA5A5; padding: 12px 16px;
+  background: rgba(239,68,68,.08); border-radius: 8px; margin: 8px 16px;
+}
+
+</style>
+
+</head>
+<body>
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <span class="install-ico">⚡</span>
+  <div class="install-text">
+    <div class="install-title">Install Sprint Fuel as an App</div>
+    <div class="install-sub">Works offline · Saves to your home screen · No app store needed</div>
+  </div>
+  <button class="install-cta" id="installBtn">Install App</button>
+  <button class="install-dismiss" id="dismissInstall">✕</button>
+</div>
+<div class="offline-pill">📡 You're offline — your data is still saved</div>
+
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-inner">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">SPRINT <span>FUEL</span></div>
+        <div class="logo-sub">ATHLETE NUTRITION TRACKER</div>
+      </div>
+    </div>
+    <div class="date-display">
+      <div class="date-main" id="headerDate"></div>
+      <div class="date-sub">Bishop McDevitt · Sprint Season</div>
+    </div>
+  </div>
+  <!-- DAY NAV -->
+  <div class="day-nav" id="dayNav"></div>
+</header>
+
+<div class="main">
+
+  <!-- FOOD DATABASE BUTTON - TOP -->
+  <button class="open-db-btn" onclick="openFoodDB()">
+    🍽 &nbsp;Browse Food Database &amp; AI Search &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;color:var(--muted2)">500+ foods · fast food · fruits · meats · search anything</span>
+  </button>
+
+  <!-- MACRO OVERVIEW -->
+  <div class="macro-bar" id="macroBar">
+    <div class="macro-card cal">
+      <div class="macro-label">Calories</div>
+      <div class="macro-val cal" id="totalCal">0</div>
+      <div class="macro-unit">kcal</div>
+      <div class="macro-ring-wrap">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle class="ring-bg" cx="28" cy="28" r="23"/>
+          <circle class="ring-fill cal" id="ringCal" cx="28" cy="28" r="23" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
+        </svg>
+        <div class="ring-pct" id="pctCal">0%</div>
+      </div>
+      <div class="macro-goal" id="goalCalLabel">Goal: 0</div>
+    </div>
+    <div class="macro-card pro">
+      <div class="macro-label">Protein</div>
+      <div class="macro-val pro" id="totalPro">0</div>
+      <div class="macro-unit">grams</div>
+      <div class="macro-ring-wrap">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle class="ring-bg" cx="28" cy="28" r="23"/>
+          <circle class="ring-fill pro" id="ringPro" cx="28" cy="28" r="23" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
+        </svg>
+        <div class="ring-pct" id="pctPro">0%</div>
+      </div>
+      <div class="macro-goal" id="goalProLabel">Goal: 0g</div>
+    </div>
+    <div class="macro-card carb">
+      <div class="macro-label">Carbs</div>
+      <div class="macro-val carb" id="totalCarb">0</div>
+      <div class="macro-unit">grams</div>
+      <div class="macro-ring-wrap">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle class="ring-bg" cx="28" cy="28" r="23"/>
+          <circle class="ring-fill carb" id="ringCarb" cx="28" cy="28" r="23" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
+        </svg>
+        <div class="ring-pct" id="pctCarb">0%</div>
+      </div>
+      <div class="macro-goal" id="goalCarbLabel">Goal: 0g</div>
+    </div>
+    <div class="macro-card fat">
+      <div class="macro-label">Fat</div>
+      <div class="macro-val fat" id="totalFat">0</div>
+      <div class="macro-unit">grams</div>
+      <div class="macro-ring-wrap">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle class="ring-bg" cx="28" cy="28" r="23"/>
+          <circle class="ring-fill fat" id="ringFat" cx="28" cy="28" r="23" stroke-dasharray="144.5" stroke-dashoffset="144.5"/>
+        </svg>
+        <div class="ring-pct" id="pctFat">0%</div>
+      </div>
+      <div class="macro-goal" id="goalFatLabel">Goal: 0g</div>
+    </div>
+  </div>
+
+  <!-- HYDRATION -->
+  <div class="hydration-card">
+    <div class="section-hdr">
+      <div class="section-title"><span class="ico">💧</span> DRINKS & HYDRATION</div>
+    </div>
+    <div class="drinks-grid">
+      <button class="drink-btn water" onclick="addDrink('water')">
+        <span class="drink-ico">💧</span>
+        <div class="drink-info"><div class="drink-name">Water</div><div class="drink-cal">0 cal · 8oz</div></div>
+      </button>
+      <button class="drink-btn bodyarmor" onclick="addDrink('bodyarmor')">
+        <span class="drink-ico">🏆</span>
+        <div class="drink-info"><div class="drink-name">Body Armor</div><div class="drink-cal">90 cal · 16oz</div></div>
+      </button>
+      <button class="drink-btn diet" onclick="addDrink('diet')">
+        <span class="drink-ico">🥤</span>
+        <div class="drink-info"><div class="drink-name">Diet Drink</div><div class="drink-cal">0–5 cal · 12oz</div></div>
+      </button>
+      <button class="drink-btn gatorade" onclick="addDrink('gatorade')">
+        <span class="drink-ico">⚡</span>
+        <div class="drink-info"><div class="drink-name">Gatorade</div><div class="drink-cal">80 cal · 12oz</div></div>
+      </button>
+      <button class="drink-btn milk" onclick="addDrink('milk')">
+        <span class="drink-ico">🥛</span>
+        <div class="drink-info"><div class="drink-name">Milk</div><div class="drink-cal">120 cal · 8oz</div></div>
+      </button>
+      <button class="drink-btn oj" onclick="addDrink('oj')">
+        <span class="drink-ico">🍊</span>
+        <div class="drink-info"><div class="drink-name">Orange Juice</div><div class="drink-cal">110 cal · 8oz</div></div>
+      </button>
+      <button class="drink-btn custom-drink" onclick="addCustomDrink()">
+        <span class="drink-ico">➕</span>
+        <div class="drink-info"><div class="drink-name">Custom</div><div class="drink-cal">Add your own</div></div>
+      </button>
+    </div>
+    <div class="drink-log" id="drinkLog">
+      <span class="drink-log-empty">Tap a drink above to log it → click chips to remove</span>
+    </div>
+    <div class="water-total">
+      <span style="font-size:13px;color:var(--teal);font-weight:800;">💧 Water</span>
+      <div class="water-bar-wrap"><div class="water-bar-fill" id="waterBar" style="width:0%"></div></div>
+      <span class="water-label" id="waterLabel">0 / 100oz</span>
+    </div>
+  </div>
+
+  <!-- MEALS -->
+  <div class="meals-wrap">
+    <!-- BREAKFAST -->
+    <div class="meal-section" id="sec-breakfast">
+      <div class="meal-hdr" onclick="toggleMeal('breakfast')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap breakfast">🌅</div>
+          <div class="meal-name-wrap">
+            <div class="meal-name">Breakfast</div>
+            <div class="meal-cal-summary" id="sum-breakfast">0 items · 0 cal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="meal-total-badge" id="badge-breakfast">0</span>
+          <span class="meal-toggle open" id="tog-breakfast">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-breakfast">
+        <table class="food-table">
+          <thead><tr>
+            <th style="width:40%">Food</th>
+            <th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th>
+          </tr></thead>
+          <tbody id="rows-breakfast"></tbody>
+        </table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-breakfast" placeholder="Food name (e.g. Scrambled Eggs)" onkeydown="enterAdd(event,'breakfast')"/>
+          <input class="add-input num" id="cal-breakfast" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-breakfast" placeholder="Pro g" type="number" min="0"/>
+          <input class="add-input num" id="carb-breakfast" placeholder="Carb g" type="number" min="0"/>
+          <input class="add-input num" id="fat-breakfast" placeholder="Fat g" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('breakfast')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('breakfast','Oatmeal (1 cup)',150,5,27,3)">Oatmeal</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Scrambled Eggs (3)',210,18,2,14)">Eggs ×3</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Banana',105,1,27,0)">Banana</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Whole Grain Toast',80,3,15,1)">Toast</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Greek Yogurt (plain)',100,17,6,0)">Greek Yogurt</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Almond Butter (1 tbsp)',98,3,3,9)">Almond Butter</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Protein Powder (1 scoop)',120,25,3,2)">Protein Powder</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Avocado (½)',120,1,6,11)">Avocado ½</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SNACK 1 -->
+    <div class="meal-section" id="sec-snack1">
+      <div class="meal-hdr" onclick="toggleMeal('snack1')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap snack1">🍎</div>
+          <div class="meal-name-wrap">
+            <div class="meal-name">Morning Snack</div>
+            <div class="meal-cal-summary" id="sum-snack1">0 items · 0 cal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="meal-total-badge" id="badge-snack1">0</span>
+          <span class="meal-toggle" id="tog-snack1">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-snack1" style="display:none">
+        <table class="food-table">
+          <thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead>
+          <tbody id="rows-snack1"></tbody>
+        </table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-snack1" placeholder="Snack name" onkeydown="enterAdd(event,'snack1')"/>
+          <input class="add-input num" id="cal-snack1" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-snack1" placeholder="Pro g" type="number" min="0"/>
+          <input class="add-input num" id="carb-snack1" placeholder="Carb g" type="number" min="0"/>
+          <input class="add-input num" id="fat-snack1" placeholder="Fat g" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('snack1')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('snack1','Apple',95,0,25,0)">Apple</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Orange',62,1,15,0)">Orange</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Grapes (1 cup)',104,1,27,0)">Grapes</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Almonds (1 oz)',164,6,6,14)">Almonds</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','String Cheese',80,7,1,5)">String Cheese</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Organic Fruit Snack Pouch',50,0,13,0)">Fruit Pouch</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Peanut Butter (1 tbsp)',94,4,3,8)">PB 1 tbsp</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LUNCH -->
+    <div class="meal-section" id="sec-lunch">
+      <div class="meal-hdr" onclick="toggleMeal('lunch')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap lunch">🥗</div>
+          <div class="meal-name-wrap">
+            <div class="meal-name">Lunch</div>
+            <div class="meal-cal-summary" id="sum-lunch">0 items · 0 cal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="meal-total-badge" id="badge-lunch">0</span>
+          <span class="meal-toggle" id="tog-lunch">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-lunch" style="display:none">
+        <table class="food-table">
+          <thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead>
+          <tbody id="rows-lunch"></tbody>
+        </table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-lunch" placeholder="Food name" onkeydown="enterAdd(event,'lunch')"/>
+          <input class="add-input num" id="cal-lunch" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-lunch" placeholder="Pro g" type="number" min="0"/>
+          <input class="add-input num" id="carb-lunch" placeholder="Carb g" type="number" min="0"/>
+          <input class="add-input num" id="fat-lunch" placeholder="Fat g" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('lunch')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add — McDevitt Options</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('lunch','Chicken Caesar Value Meal',380,32,18,16)">🥗 Caesar Meal $5</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Asian Rice Bowl',420,22,68,8)">🍚 Rice Bowl</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Taco Bar - Chicken',450,28,52,12)">🌮 Taco Bar</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Garden Salad + Egg',180,10,12,9)">🥗 Garden Salad</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Grilled Chicken Breast',165,31,0,4)">Chicken</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Brown Rice (1 cup)',216,5,45,2)">Brown Rice</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Tuna Sandwich',320,28,30,8)">Tuna Sandwich</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SNACK 2 -->
+    <div class="meal-section" id="sec-snack2">
+      <div class="meal-hdr" onclick="toggleMeal('snack2')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap snack2">🍊</div>
+          <div class="meal-name-wrap">
+            <div class="meal-name">Afternoon Snack <span style="font-size:10px;color:var(--muted);font-weight:600;">(Pre-Practice)</span></div>
+            <div class="meal-cal-summary" id="sum-snack2">0 items · 0 cal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="meal-total-badge" id="badge-snack2">0</span>
+          <span class="meal-toggle" id="tog-snack2">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-snack2" style="display:none">
+        <table class="food-table">
+          <thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead>
+          <tbody id="rows-snack2"></tbody>
+        </table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-snack2" placeholder="Pre-practice snack" onkeydown="enterAdd(event,'snack2')"/>
+          <input class="add-input num" id="cal-snack2" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-snack2" placeholder="Pro g" type="number" min="0"/>
+          <input class="add-input num" id="carb-snack2" placeholder="Carb g" type="number" min="0"/>
+          <input class="add-input num" id="fat-snack2" placeholder="Fat g" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('snack2')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add — Pre-Practice</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('snack2','Banana',105,1,27,0)">Banana</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Peanut Butter (1 tbsp)',94,4,3,8)">PB 1 tbsp</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Apple',95,0,25,0)">Apple</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Organic Fruit Snack Pouch',50,0,13,0)">Fruit Pouch</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Rice Cake',35,1,7,0)">Rice Cake</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Walnuts (1 oz)',185,4,4,18)">Walnuts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DINNER -->
+    <div class="meal-section" id="sec-dinner">
+      <div class="meal-hdr" onclick="toggleMeal('dinner')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap dinner">🍽</div>
+          <div class="meal-name-wrap">
+            <div class="meal-name">Dinner</div>
+            <div class="meal-cal-summary" id="sum-dinner">0 items · 0 cal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="meal-total-badge" id="badge-dinner">0</span>
+          <span class="meal-toggle" id="tog-dinner">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-dinner" style="display:none">
+        <table class="food-table">
+          <thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead>
+          <tbody id="rows-dinner"></tbody>
+        </table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-dinner" placeholder="Food name" onkeydown="enterAdd(event,'dinner')"/>
+          <input class="add-input num" id="cal-dinner" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-dinner" placeholder="Pro g" type="number" min="0"/>
+          <input class="add-input num" id="carb-dinner" placeholder="Carb g" type="number" min="0"/>
+          <input class="add-input num" id="fat-dinner" placeholder="Fat g" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('dinner')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('dinner','Salmon Fillet (6oz)',354,48,0,17)">Salmon</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Chicken Breast (6oz)',280,52,0,6)">Chicken Breast</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Chicken Thigh (skinless)',209,26,0,11)">Chicken Thigh</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Tilapia (6oz)',218,45,0,4)">Tilapia</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Brown Rice (1 cup)',216,5,45,2)">Brown Rice</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Sweet Potato (med)',103,2,24,0)">Sweet Potato</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Broccoli (1 cup)',55,4,11,1)">Broccoli</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Asparagus (1 cup)',27,3,5,0)">Asparagus</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Olive Oil (1 tbsp)',119,0,0,14)">Olive Oil</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Turkey Breast (4oz)',120,28,0,1)">Turkey</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENING SNACK -->
+    <div class="meal-section" id="sec-evening">
+      <div class="meal-hdr" onclick="toggleMeal('evening')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap evening">🌙</div>
+          <div class="meal-name-wrap">
+            <div class="meal-name">Evening Snack</div>
+            <div class="meal-cal-summary" id="sum-evening">0 items · 0 cal</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="meal-total-badge" id="badge-evening">0</span>
+          <span class="meal-toggle" id="tog-evening">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-evening" style="display:none">
+        <table class="food-table">
+          <thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead>
+          <tbody id="rows-evening"></tbody>
+        </table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-evening" placeholder="Evening snack" onkeydown="enterAdd(event,'evening')"/>
+          <input class="add-input num" id="cal-evening" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-evening" placeholder="Pro g" type="number" min="0"/>
+          <input class="add-input num" id="carb-evening" placeholder="Carb g" type="number" min="0"/>
+          <input class="add-input num" id="fat-evening" placeholder="Fat g" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('evening')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('evening','Greek Yogurt (plain)',100,17,6,0)">Greek Yogurt</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Mixed Berries (½ cup)',42,1,10,0)">Berries</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Almonds (1 oz)',164,6,6,14)">Almonds</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Peanut Butter (1 tbsp)',94,4,3,8)">PB 1 tbsp</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Dark Chocolate (2 squares)',100,1,12,6)">Dark Choc</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Granola (¼ cup)',120,3,20,4)">Granola</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Walnuts (1 oz)',185,4,4,18)">Walnuts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOALS EDITOR -->
+  <div class="goals-card">
+    <div class="goals-hdr" onclick="toggleGoals()">
+      <div class="section-title"><span class="ico">🎯</span> DAILY GOALS</div>
+      <span class="meal-toggle" id="tog-goals">▾</span>
+    </div>
+    <div class="goals-body" id="body-goals">
+      <div class="goals-grid">
+        <div class="goal-field"><label>Calorie Goal</label><input type="number" id="g-cal" placeholder="e.g. 3200"/></div>
+        <div class="goal-field"><label>Protein Goal (g)</label><input type="number" id="g-pro" placeholder="e.g. 160"/></div>
+        <div class="goal-field"><label>Carb Goal (g)</label><input type="number" id="g-carb" placeholder="e.g. 400"/></div>
+        <div class="goal-field"><label>Fat Goal (g)</label><input type="number" id="g-fat" placeholder="e.g. 90"/></div>
+        <div class="goal-field"><label>Water Goal (oz)</label><input type="number" id="g-water" placeholder="e.g. 100"/></div>
+      </div>
+      <button class="save-goals-btn" onclick="saveGoals()">💾 Save Goals</button>
+    </div>
+  </div>
+
+  <!-- DAILY SUMMARY -->
+  <div class="summary-card">
+    <div class="summary-title">📊 DAY SUMMARY</div>
+    <div class="summary-grid">
+      <div class="summary-row"><span class="s-label">Total Calories</span><span class="s-val cal" id="s-cal">0</span></div>
+      <div class="summary-row"><span class="s-label">Total Protein</span><span class="s-val pro" id="s-pro">0g</span></div>
+      <div class="summary-row"><span class="s-label">Total Carbs</span><span class="s-val carb" id="s-carb">0g</span></div>
+      <div class="summary-row"><span class="s-label">Total Fat</span><span class="s-val fat" id="s-fat">0g</span></div>
+      <div class="summary-row"><span class="s-label">Water Intake</span><span class="s-val water" id="s-water">0oz</span></div>
+      <div class="summary-row"><span class="s-label">Total Drinks</span><span class="s-val drinks" id="s-drinks">0</span></div>
+    </div>
+    <div class="goal-bars">
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">🔥 Calories</span><span class="goal-nums" id="gn-cal">0 / 0</span></div>
+        <div class="prog-bar"><div class="prog-fill cal" id="gp-cal" style="width:0%"></div></div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">💪 Protein</span><span class="goal-nums" id="gn-pro">0 / 0g</span></div>
+        <div class="prog-bar"><div class="prog-fill pro" id="gp-pro" style="width:0%"></div></div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">⚡ Carbs</span><span class="goal-nums" id="gn-carb">0 / 0g</span></div>
+        <div class="prog-bar"><div class="prog-fill carb" id="gp-carb" style="width:0%"></div></div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">🫙 Fat</span><span class="goal-nums" id="gn-fat">0 / 0g</span></div>
+        <div class="prog-bar"><div class="prog-fill fat" id="gp-fat" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="statusBanner" class="status-banner warn">
+      <span class="status-ico">📋</span>
+      <span id="statusMsg">Start logging your meals to see your athlete status!</span>
+    </div>
+  </div>
+
+  <button class="reset-btn" onclick="resetDay()">🗑 Reset Today's Log</button>
+</div>
+
+<!-- FOOD DATABASE MODAL -->
+<div class="modal-overlay" id="foodModal" onclick="handleOverlayClick(event)">
+  <div class="food-modal">
+
+    <!-- MODAL HEADER -->
+    <div class="modal-hdr">
+      <div class="modal-title">🍽 Food Database</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--muted);font-weight:700;">Adding to:</span>
+        <span class="active-meal-badge" id="activeMealBadge">🌅 Breakfast</span>
+        <button class="modal-close" onclick="closeFoodDB()">✕</button>
+      </div>
+    </div>
+
+    <!-- MEAL SELECTOR - NOW AT TOP -->
+    <div class="meal-select-row" id="mealSelectRow">
+      <button class="meal-sel-btn selected" data-meal="breakfast" onclick="selectMealTarget(this)">🌅 Breakfast</button>
+      <button class="meal-sel-btn" data-meal="snack1" onclick="selectMealTarget(this)">🍎 Snack 1</button>
+      <button class="meal-sel-btn" data-meal="lunch" onclick="selectMealTarget(this)">🥗 Lunch</button>
+      <button class="meal-sel-btn" data-meal="snack2" onclick="selectMealTarget(this)">🍊 Snack 2</button>
+      <button class="meal-sel-btn" data-meal="dinner" onclick="selectMealTarget(this)">🍽 Dinner</button>
+      <button class="meal-sel-btn" data-meal="evening" onclick="selectMealTarget(this)">🌙 Evening</button>
+    </div>
+
+    <!-- AI SEARCH -->
+    <div class="db-search-wrap">
+      <div class="db-search-row">
+        <input class="db-search-input" id="dbSearchInput"
+          placeholder="Search 600+ foods, or AI search any item..."
+          oninput="filterFoods()" onkeydown="searchKeydown(event)"/>
+        <button class="ai-search-btn" id="aiSearchBtn" onclick="aiSearch()">
+          <span class="btn-ico">✨</span> AI Search
+        </button>
+      </div>
+      <!-- AI RESULTS PANEL -->
+      <div class="ai-results-panel" id="aiPanel"></div>
+    </div>
+
+    <!-- CATEGORY TABS -->
+    <div class="cat-tabs" id="catTabs"></div>
+
+    <!-- FOOD LIST -->
+    <div class="food-list-wrap" id="foodList"></div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────────
+const MEALS = ['breakfast','snack1','lunch','snack2','dinner','evening'];
+const DRINK_DATA = {
+  water:     {name:'Water',      cal:0,   oz:8,   color:'#14B8A6', emoji:'💧'},
+  bodyarmor: {name:'Body Armor', cal:90,  oz:16,  color:'#F97316', emoji:'🏆'},
+  diet:      {name:'Diet Drink', cal:2,   oz:12,  color:'#A855F7', emoji:'🥤'},
+  gatorade:  {name:'Gatorade',   cal:80,  oz:12,  color:'#22C55E', emoji:'⚡'},
+  milk:      {name:'Milk',       cal:120, oz:8,   color:'#F1F5F9', emoji:'🥛'},
+  oj:        {name:'OJ',         cal:110, oz:8,   color:'#F0A500', emoji:'🍊'},
+};
+
+let state = {};
+let goals = { cal:3200, pro:160, carb:400, fat:90, water:100 };
+let currentDay = '';
+
+const DAYS_OF_MONTH = [];
+for(let d=4;d<=31;d++){
+  const date = new Date(2026,2,d); // March = 2
+  const dows = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  DAYS_OF_MONTH.push({
+    key:`2026-03-${String(d).padStart(2,'0')}`,
+    label:`Mar ${d}`,
+    short:dows[date.getDay()],
+    isFri: date.getDay()===5
+  });
+}
+
+function getKey(){ return currentDay; }
+
+function getDay(key){
+  if(!state[key]) state[key] = {
+    meals:{breakfast:[],snack1:[],lunch:[],snack2:[],dinner:[],evening:[]},
+    drinks:[], notes:''
+  };
+  return state[key];
+}
+
+function saveState(){ try{ localStorage.setItem('sprintFuel_v2', JSON.stringify({state,goals})); }catch(e){} }
+function loadState(){
+  try{
+    const d = JSON.parse(localStorage.getItem('sprintFuel_v2')||'null');
+    if(d){ state=d.state||{}; goals=d.goals||goals; }
+  }catch(e){}
+}
+
+// ── DAY NAV ────────────────────────────────────────────────────────
+function buildNav(){
+  const nav = document.getElementById('dayNav');
+  nav.innerHTML = DAYS_OF_MONTH.map(d=>`
+    <button class="day-btn${d.isFri?' fri':''} ${d.key===currentDay?'active':''} ${state[d.key]?'has-data':''}"
+      id="navbtn-${d.key}" onclick="switchDay('${d.key}')">
+      ${d.short} ${d.label.split(' ')[1]}
+    </button>`).join('');
+}
+
+function switchDay(key){
+  currentDay = key;
+  buildNav();
+  renderAll();
+  const di = DAYS_OF_MONTH.find(d=>d.key===key);
+  const date = new Date(2026,2,parseInt(key.split('-')[2]));
+  const months = ['Jan','Feb','Mar','Apr'];
+  const dows2 = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('headerDate').textContent = `${dows2[date.getDay()]}, March ${date.getDate()}`;
+  // Scroll nav button into view
+  const btn = document.getElementById('navbtn-'+key);
+  if(btn) btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+
+// ── MEALS ──────────────────────────────────────────────────────────
+function addFood(meal){
+  const name  = document.getElementById('fi-'+meal).value.trim();
+  const cal   = parseFloat(document.getElementById('cal-'+meal).value)||0;
+  const pro   = parseFloat(document.getElementById('pro-'+meal).value)||0;
+  const carb  = parseFloat(document.getElementById('carb-'+meal).value)||0;
+  const fat   = parseFloat(document.getElementById('fat-'+meal).value)||0;
+  if(!name){ document.getElementById('fi-'+meal).focus(); return; }
+  const day = getDay(getKey());
+  day.meals[meal].push({name,cal,pro,carb,fat,id:Date.now()});
+  saveState();
+  clearInputs(meal);
+  renderMeal(meal);
+  updateTotals();
+  showToast(`Added: ${name}`);
+}
+
+function quickAdd(meal,name,cal,pro,carb,fat){
+  const day = getDay(getKey());
+  day.meals[meal].push({name,cal,pro,carb,fat,id:Date.now()});
+  saveState();
+  renderMeal(meal);
+  updateTotals();
+  showToast(`Added: ${name}`);
+}
+
+function removeFood(meal, id){
+  const day = getDay(getKey());
+  day.meals[meal] = day.meals[meal].filter(f=>f.id!==id);
+  saveState();
+  renderMeal(meal);
+  updateTotals();
+}
+
+function clearInputs(meal){
+  ['fi','cal','pro','carb','fat'].forEach(f=>{ document.getElementById(f+'-'+meal).value=''; });
+  document.getElementById('fi-'+meal).focus();
+}
+
+function enterAdd(e,meal){ if(e.key==='Enter') addFood(meal); }
+
+function renderMeal(meal){
+  const day = getDay(getKey());
+  const items = day.meals[meal];
+  const tbody = document.getElementById('rows-'+meal);
+  const totalCal = items.reduce((s,f)=>s+f.cal,0);
+  document.getElementById('sum-'+meal).textContent = `${items.length} item${items.length!==1?'s':''} · ${totalCal} cal`;
+  document.getElementById('badge-'+meal).textContent = totalCal;
+  tbody.innerHTML = items.map(f=>`
+    <tr class="food-row">
+      <td class="food-name-cell">${f.name}</td>
+      <td class="right food-cal-cell">${f.cal}</td>
+      <td class="right food-macro-cell">${f.pro}g</td>
+      <td class="right food-macro-cell">${f.carb}g</td>
+      <td class="right food-macro-cell">${f.fat}g</td>
+      <td><button class="del-btn" onclick="removeFood('${meal}',${f.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+function toggleMeal(meal){
+  const body = document.getElementById('body-'+meal);
+  const tog  = document.getElementById('tog-'+meal);
+  const isOpen = body.style.display!=='none';
+  body.style.display = isOpen?'none':'block';
+  tog.classList.toggle('open',!isOpen);
+}
+
+// ── DRINKS ─────────────────────────────────────────────────────────
+function addDrink(type){
+  const day = getDay(getKey());
+  const info = DRINK_DATA[type];
+  day.drinks.push({type,name:info.name,cal:info.cal,oz:info.oz,emoji:info.emoji,id:Date.now()});
+  saveState(); renderDrinks(); updateTotals();
+  showToast(`Added: ${info.emoji} ${info.name}`);
+}
+
+function addCustomDrink(){
+  const name = prompt('Drink name:','');
+  if(!name) return;
+  const cal  = parseInt(prompt('Calories:','0'))||0;
+  const oz   = parseInt(prompt('Ounces:','8'))||8;
+  const day = getDay(getKey());
+  day.drinks.push({type:'custom',name,cal,oz,emoji:'🧃',id:Date.now()});
+  saveState(); renderDrinks(); updateTotals();
+  showToast(`Added: ${name}`);
+}
+
+function removeDrink(id){
+  const day = getDay(getKey());
+  day.drinks = day.drinks.filter(d=>d.id!==id);
+  saveState(); renderDrinks(); updateTotals();
+}
+
+function renderDrinks(){
+  const day = getDay(getKey());
+  const log = document.getElementById('drinkLog');
+  if(!day.drinks.length){
+    log.innerHTML='<span class="drink-log-empty">Tap a drink above to log it → click chips to remove</span>';
+  } else {
+    const colors={water:'#14B8A6',bodyarmor:'#F97316',diet:'#A855F7',gatorade:'#22C55E',milk:'#94A3B8',oj:'#F0A500',custom:'#3B82F6'};
+    log.innerHTML = day.drinks.map(d=>`
+      <div class="drink-chip" style="background:${colors[d.type]||'#3B82F6'}22;border:1px solid ${colors[d.type]||'#3B82F6'}55;color:${colors[d.type]||'#3B82F6'};"
+        onclick="removeDrink(${d.id})">
+        ${d.emoji} ${d.name}${d.cal?' · '+d.cal+' cal':''} <span class="chip-x">✕</span>
+      </div>`).join('');
+  }
+  // Water bar
+  const waterOz = day.drinks.filter(d=>d.type==='water').reduce((s,d)=>s+d.oz,0);
+  const waterGoal = goals.water||100;
+  const pct = Math.min(100,(waterOz/waterGoal)*100);
+  document.getElementById('waterBar').style.width = pct+'%';
+  document.getElementById('waterLabel').textContent = `${waterOz} / ${waterGoal}oz`;
+  document.getElementById('s-water').textContent = waterOz+'oz';
+  document.getElementById('s-drinks').textContent = day.drinks.length;
+}
+
+// ── TOTALS ─────────────────────────────────────────────────────────
+function updateTotals(){
+  const day = getDay(getKey());
+  let cal=0,pro=0,carb=0,fat=0;
+  MEALS.forEach(m=>day.meals[m].forEach(f=>{cal+=f.cal;pro+=f.pro;carb+=f.carb;fat+=f.fat;}));
+  day.drinks.forEach(d=>cal+=d.cal);
+  document.getElementById('totalCal').textContent = cal;
+  document.getElementById('totalPro').textContent = pro;
+  document.getElementById('totalCarb').textContent = carb;
+  document.getElementById('totalFat').textContent = fat;
+  document.getElementById('s-cal').textContent = cal;
+  document.getElementById('s-pro').textContent = pro+'g';
+  document.getElementById('s-carb').textContent = carb+'g';
+  document.getElementById('s-fat').textContent = fat+'g';
+  // Rings
+  const CIRC=144.5;
+  function setRing(id,pctId,val,goal){
+    const pct=goal?Math.min(100,(val/goal)*100):0;
+    document.getElementById(id).style.strokeDashoffset = CIRC - (CIRC*(pct/100));
+    document.getElementById(pctId).textContent = Math.round(pct)+'%';
+  }
+  setRing('ringCal','pctCal',cal,goals.cal);
+  setRing('ringPro','pctPro',pro,goals.pro);
+  setRing('ringCarb','pctCarb',carb,goals.carb);
+  setRing('ringFat','pctFat',fat,goals.fat);
+  // Goal labels
+  document.getElementById('goalCalLabel').textContent = `Goal: ${goals.cal}`;
+  document.getElementById('goalProLabel').textContent = `Goal: ${goals.pro}g`;
+  document.getElementById('goalCarbLabel').textContent = `Goal: ${goals.carb}g`;
+  document.getElementById('goalFatLabel').textContent = `Goal: ${goals.fat}g`;
+  // Progress bars
+  function setBar(barId,numId,val,goal,unit){
+    const pct=goal?Math.min(100,(val/goal)*100):0;
+    document.getElementById(barId).style.width=pct+'%';
+    document.getElementById(numId).textContent=`${val} / ${goal}${unit}`;
+  }
+  setBar('gp-cal','gn-cal',cal,goals.cal,'');
+  setBar('gp-pro','gn-pro',pro,goals.pro,'g');
+  setBar('gp-carb','gn-carb',carb,goals.carb,'g');
+  setBar('gp-fat','gn-fat',fat,goals.fat,'g');
+  // Athlete status
+  const calPct = goals.cal ? cal/goals.cal : 0;
+  const proPct = goals.pro ? pro/goals.pro : 0;
+  const banner = document.getElementById('statusBanner');
+  const msg    = document.getElementById('statusMsg');
+  if(cal===0){
+    banner.className='status-banner warn'; msg.textContent='Start logging meals to track your athlete status!';
+  } else if(calPct>=0.9 && proPct>=0.85){
+    banner.className='status-banner good'; msg.textContent='🔥 Fueled and ready! Calorie & protein targets on track — you\'re going to feel fast today.';
+  } else if(calPct<0.6 && cal>0){
+    banner.className='status-banner low'; msg.textContent='⚠️ Under-fueled! You need more calories before practice. Add a carb-heavy meal or snack now.';
+  } else if(proPct<0.6 && cal>0){
+    banner.className='status-banner warn'; msg.textContent='💪 Protein is low. Add chicken, eggs, Greek yogurt, or a protein shake to hit your recovery target.';
+  } else {
+    banner.className='status-banner warn'; msg.textContent='📈 Good progress — keep logging. You\'re on track to hit your goals.';
+  }
+}
+
+// ── GOALS ──────────────────────────────────────────────────────────
+function toggleGoals(){
+  const body=document.getElementById('body-goals');
+  const tog=document.getElementById('tog-goals');
+  const open=body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  tog.classList.toggle('open',!open);
+}
+
+function saveGoals(){
+  goals.cal  = parseInt(document.getElementById('g-cal').value)||goals.cal;
+  goals.pro  = parseInt(document.getElementById('g-pro').value)||goals.pro;
+  goals.carb = parseInt(document.getElementById('g-carb').value)||goals.carb;
+  goals.fat  = parseInt(document.getElementById('g-fat').value)||goals.fat;
+  goals.water= parseInt(document.getElementById('g-water').value)||goals.water;
+  saveState(); updateTotals(); renderDrinks();
+  showToast('Goals saved! 🎯');
+}
+
+function loadGoalsUI(){
+  document.getElementById('g-cal').value   = goals.cal;
+  document.getElementById('g-pro').value   = goals.pro;
+  document.getElementById('g-carb').value  = goals.carb;
+  document.getElementById('g-fat').value   = goals.fat;
+  document.getElementById('g-water').value = goals.water;
+}
+
+// ── RESET ──────────────────────────────────────────────────────────
+function resetDay(){
+  if(!confirm('Reset all of today\'s logs? This cannot be undone.')) return;
+  delete state[getKey()];
+  saveState(); renderAll(); showToast('Day reset ✓');
+}
+
+// ── RENDER ALL ─────────────────────────────────────────────────────
+function renderAll(){
+  MEALS.forEach(m=>renderMeal(m));
+  renderDrinks();
+  updateTotals();
+}
+
+// ── TOAST ──────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── FOOD DATABASE ───────────────────────────────────────────────────
+// [name, cal, pro, carb, fat, serving, category]
+const FOOD_DB = [
+  // FRUITS
+  ['Apple (medium)',95,0,25,0,'1 medium','Fruits'],
+  ['Apple (large)',130,0,34,0,'1 large','Fruits'],
+  ['Banana (medium)',105,1,27,0,'1 medium','Fruits'],
+  ['Banana (large)',121,1,31,0,'1 large','Fruits'],
+  ['Orange (medium)',62,1,15,0,'1 medium','Fruits'],
+  ['Grapes (1 cup)',104,1,27,0,'1 cup','Fruits'],
+  ['Strawberries (1 cup)',49,1,12,0,'1 cup (152g)','Fruits'],
+  ['Blueberries (1 cup)',84,1,21,0,'1 cup (148g)','Fruits'],
+  ['Raspberries (1 cup)',64,1,15,1,'1 cup (123g)','Fruits'],
+  ['Blackberries (1 cup)',62,2,14,1,'1 cup (144g)','Fruits'],
+  ['Mango (1 cup)',99,1,25,1,'1 cup (165g)','Fruits'],
+  ['Pineapple (1 cup)',82,1,22,0,'1 cup (165g)','Fruits'],
+  ['Watermelon (1 cup)',46,1,11,0,'1 cup (154g)','Fruits'],
+  ['Cantaloupe (1 cup)',60,1,14,0,'1 cup','Fruits'],
+  ['Peach (medium)',58,1,14,0,'1 medium','Fruits'],
+  ['Pear (medium)',101,1,27,0,'1 medium','Fruits'],
+  ['Kiwi',42,1,10,0,'1 medium','Fruits'],
+  ['Cherries (1 cup)',97,2,25,0,'1 cup','Fruits'],
+  ['Avocado (half)',120,2,6,11,'½ avocado','Fruits'],
+  ['Avocado (whole)',240,3,13,22,'1 whole','Fruits'],
+  ['Grapefruit (half)',52,1,13,0,'½ grapefruit','Fruits'],
+  ['Plum',30,0,8,0,'1 medium','Fruits'],
+  ['Nectarine',62,1,15,0,'1 medium','Fruits'],
+  ['Pomegranate seeds (½ cup)',72,1,16,1,'½ cup','Fruits'],
+  ['Dates (2)',133,1,36,0,'2 dates','Fruits'],
+  ['Raisins (¼ cup)',123,1,33,0,'¼ cup','Fruits'],
+  ['Dried Cranberries (¼ cup)',92,0,25,0,'¼ cup','Fruits'],
+  ['Dried Mango Strips (1 oz)',90,1,23,0,'1 oz','Fruits'],
+  ['Coconut (shredded, 2 tbsp)',35,0,2,3,'2 tbsp','Fruits'],
+  // VEGETABLES
+  ['Broccoli (1 cup)',55,4,11,1,'1 cup chopped','Vegetables'],
+  ['Spinach (1 cup raw)',7,1,1,0,'1 cup raw','Vegetables'],
+  ['Spinach (1 cup cooked)',41,5,7,0,'1 cup cooked','Vegetables'],
+  ['Kale (1 cup raw)',33,2,6,1,'1 cup raw','Vegetables'],
+  ['Sweet Potato (medium)',103,2,24,0,'1 medium (130g)','Vegetables'],
+  ['Sweet Potato (large)',162,3,37,0,'1 large','Vegetables'],
+  ['Baked Potato (medium)',161,4,37,0,'1 medium','Vegetables'],
+  ['Carrots (1 cup)',52,1,12,0,'1 cup chopped','Vegetables'],
+  ['Carrot (1 medium)',25,1,6,0,'1 medium','Vegetables'],
+  ['Baby Carrots (10)',35,1,8,0,'10 pieces','Vegetables'],
+  ['Bell Pepper (red)',31,1,7,0,'1 medium','Vegetables'],
+  ['Bell Pepper (green)',24,1,6,0,'1 medium','Vegetables'],
+  ['Cucumber (half)',16,1,4,0,'½ cucumber','Vegetables'],
+  ['Tomato (medium)',22,1,5,0,'1 medium','Vegetables'],
+  ['Cherry Tomatoes (1 cup)',27,1,6,0,'1 cup','Vegetables'],
+  ['Celery (1 stalk)',6,0,1,0,'1 stalk','Vegetables'],
+  ['Zucchini (1 cup)',21,2,4,0,'1 cup sliced','Vegetables'],
+  ['Asparagus (1 cup)',27,3,5,0,'1 cup','Vegetables'],
+  ['Green Beans (1 cup)',31,2,7,0,'1 cup','Vegetables'],
+  ['Peas (1 cup)',117,8,21,1,'1 cup','Vegetables'],
+  ['Edamame (½ cup)',94,9,8,4,'½ cup shelled','Vegetables'],
+  ['Corn (1 ear)',77,3,17,1,'1 medium ear','Vegetables'],
+  ['Cauliflower (1 cup)',27,2,5,0,'1 cup','Vegetables'],
+  ['Brussels Sprouts (1 cup)',56,4,11,1,'1 cup','Vegetables'],
+  ['Onion (medium)',44,1,11,0,'1 medium','Vegetables'],
+  ['Mushrooms (1 cup)',21,3,3,0,'1 cup sliced','Vegetables'],
+  ['Beet (medium)',35,1,8,0,'1 medium','Vegetables'],
+  ['Romaine Lettuce (1 cup)',15,1,3,0,'1 cup shredded','Vegetables'],
+  ['Butternut Squash (1 cup)',82,2,22,0,'1 cup cubed','Vegetables'],
+  ['Snap Peas (1 cup)',41,3,7,0,'1 cup','Vegetables'],
+  ['Broccolini (1 cup)',37,3,6,1,'1 cup','Vegetables'],
+  // MEATS — CHICKEN & TURKEY
+  ['Chicken Breast (4oz)',165,31,0,4,'4oz cooked','Meats'],
+  ['Chicken Breast (6oz)',248,47,0,6,'6oz cooked','Meats'],
+  ['Chicken Breast (8oz)',330,62,0,8,'8oz cooked','Meats'],
+  ['Chicken Thigh skinless (1)',209,26,0,11,'1 thigh cooked','Meats'],
+  ['Chicken Thigh skin-on (1)',280,28,0,18,'1 thigh cooked','Meats'],
+  ['Rotisserie Chicken (breast, 4oz)',250,35,0,12,'4oz','Meats'],
+  ['Chicken Strips (3oz)',140,26,0,3,'3oz grilled','Meats'],
+  ['Ground Turkey 93% (4oz)',170,22,0,9,'4oz cooked','Meats'],
+  ['Turkey Breast (4oz)',120,28,0,1,'4oz cooked','Meats'],
+  ['Turkey Meatball (1 large)',80,8,4,4,'1 meatball','Meats'],
+  // MEATS — FISH & SEAFOOD
+  ['Salmon Fillet (4oz)',236,25,0,15,'4oz cooked','Meats'],
+  ['Salmon Fillet (6oz)',354,37,0,23,'6oz cooked','Meats'],
+  ['Tilapia (4oz)',145,30,0,3,'4oz cooked','Meats'],
+  ['Tilapia (6oz)',218,45,0,4,'6oz cooked','Meats'],
+  ['Tuna canned in water (3oz)',73,17,0,1,'3oz drained','Meats'],
+  ['Tuna canned in water (5oz)',122,28,0,1,'5oz drained','Meats'],
+  ['Shrimp (4oz)',112,24,1,2,'4oz cooked','Meats'],
+  ['Cod (4oz)',95,21,0,1,'4oz cooked','Meats'],
+  ['Cod (6oz)',143,31,0,1,'6oz cooked','Meats'],
+  ['Halibut (4oz)',159,30,0,3,'4oz cooked','Meats'],
+  ['Sardines (1 can)',191,23,0,11,'1 can (92g)','Meats'],
+  ['Canned Salmon (3oz)',130,17,0,6,'3oz','Meats'],
+  // EGGS & DAIRY
+  ['Egg (whole)',72,6,0,5,'1 large egg','Dairy'],
+  ['Egg Whites (3)',51,11,0,0,'3 whites','Dairy'],
+  ['Scrambled Eggs (2)',182,12,2,13,'2 eggs cooked','Dairy'],
+  ['Hard-Boiled Egg',78,6,1,5,'1 large','Dairy'],
+  ['Greek Yogurt plain (½ cup)',80,12,5,0,'½ cup (113g)','Dairy'],
+  ['Greek Yogurt plain (1 cup)',150,22,10,0,'1 cup (227g)','Dairy'],
+  ['Chobani Greek Yogurt (5.3oz)',100,15,8,0,'1 container','Dairy'],
+  ['Milk whole (1 cup)',149,8,12,8,'1 cup (244ml)','Dairy'],
+  ['Milk 2% (1 cup)',122,8,12,5,'1 cup (244ml)','Dairy'],
+  ['Milk skim (1 cup)',83,8,12,0,'1 cup (244ml)','Dairy'],
+  ['Almond Milk unsweetened (1 cup)',30,1,1,3,'1 cup','Dairy'],
+  ['Oat Milk (1 cup)',120,3,16,5,'1 cup','Dairy'],
+  ['String Cheese',80,7,1,5,'1 stick (28g)','Dairy'],
+  ['Cheddar Cheese (1 oz)',114,7,0,9,'1 oz','Dairy'],
+  ['Mozzarella (1 oz)',85,6,1,6,'1 oz','Dairy'],
+  ['Feta Cheese (¼ cup)',99,5,2,8,'¼ cup crumbled','Dairy'],
+  ['Parmesan (2 tbsp)',43,4,0,3,'2 tbsp grated','Dairy'],
+  ['Protein Powder (1 scoop)',120,25,3,2,'1 scoop (~30g)','Dairy'],
+  ['Whey Protein (1 scoop)',130,26,3,2,'1 scoop (33g)','Dairy'],
+  ['Fairlife Core Power (26g pro)',170,26,14,4,'11.5 fl oz','Dairy'],
+  ['Premier Protein Shake',160,30,5,3,'11.5 fl oz','Dairy'],
+  // GRAINS
+  ['Oatmeal (½ cup dry)',150,5,27,3,'½ cup dry (40g)','Grains'],
+  ['Oatmeal (1 cup cooked)',166,6,32,4,'1 cup cooked','Grains'],
+  ['Brown Rice (1 cup cooked)',216,5,45,2,'1 cup cooked','Grains'],
+  ['White Rice (1 cup cooked)',206,4,45,0,'1 cup cooked','Grains'],
+  ['Pasta (1 cup cooked)',220,8,43,1,'1 cup cooked','Grains'],
+  ['Whole Wheat Pasta (1 cup)',174,7,37,1,'1 cup cooked','Grains'],
+  ['Whole Grain Toast',80,3,15,1,'1 slice (28g)','Grains'],
+  ['White Bread (1 slice)',77,3,14,1,'1 slice','Grains'],
+  ['Whole Wheat Bread (1 slice)',69,4,12,1,'1 slice','Grains'],
+  ['Bagel (plain)',270,11,53,2,'1 medium','Grains'],
+  ['English Muffin',134,5,26,1,'1 muffin','Grains'],
+  ['Whole Wheat Tortilla (8")',130,4,22,4,'1 tortilla','Grains'],
+  ['Corn Tortilla (6")',52,1,11,1,'1 tortilla','Grains'],
+  ['Granola (¼ cup)',120,3,20,4,'¼ cup','Grains'],
+  ['Granola Bar',190,4,29,7,'1 bar (47g)','Grains'],
+  ['Rice Cake',35,1,7,0,'1 cake','Grains'],
+  ['Lentils (½ cup cooked)',115,9,20,0,'½ cup (99g)','Grains'],
+  ['Black Beans (½ cup)',114,8,20,0,'½ cup','Grains'],
+  ['Chickpeas (½ cup)',134,7,22,2,'½ cup','Grains'],
+  ['Kidney Beans (½ cup)',112,8,20,0,'½ cup','Grains'],
+  ['Quinoa (1 cup cooked)',222,8,39,4,'1 cup cooked','Grains'],
+  // NUTS & SEEDS
+  ['Almonds (1 oz / ~23)',164,6,6,14,'1 oz','Nuts & Seeds'],
+  ['Peanuts (1 oz)',161,7,5,14,'1 oz','Nuts & Seeds'],
+  ['Walnuts (1 oz / ~14 halves)',185,4,4,18,'1 oz','Nuts & Seeds'],
+  ['Cashews (1 oz)',157,5,9,12,'1 oz','Nuts & Seeds'],
+  ['Macadamia Nuts (1 oz)',204,2,4,21,'1 oz','Nuts & Seeds'],
+  ['Pecans (1 oz)',196,3,4,20,'1 oz','Nuts & Seeds'],
+  ['Pistachios (1 oz)',160,6,8,13,'1 oz','Nuts & Seeds'],
+  ['Peanut Butter (1 tbsp)',94,4,3,8,'1 tbsp (16g)','Nuts & Seeds'],
+  ['Peanut Butter (2 tbsp)',188,8,6,16,'2 tbsp','Nuts & Seeds'],
+  ['Almond Butter (1 tbsp)',98,3,3,9,'1 tbsp','Nuts & Seeds'],
+  ['Almond Butter (2 tbsp)',196,7,6,18,'2 tbsp','Nuts & Seeds'],
+  ['Sunflower Seeds (1 oz)',165,6,7,14,'1 oz','Nuts & Seeds'],
+  ['Chia Seeds (1 tbsp)',58,2,5,4,'1 tbsp','Nuts & Seeds'],
+  ['Hemp Seeds (3 tbsp)',166,10,3,13,'3 tbsp','Nuts & Seeds'],
+  ['Mixed Nuts (1 oz)',172,5,6,15,'1 oz','Nuts & Seeds'],
+  ['Trail Mix (¼ cup)',173,4,17,11,'¼ cup','Nuts & Seeds'],
+  // FATS & CONDIMENTS
+  ['Olive Oil (1 tbsp)',119,0,0,14,'1 tbsp','Condiments'],
+  ['Coconut Oil (1 tbsp)',117,0,0,14,'1 tbsp','Condiments'],
+  ['Butter (1 tbsp)',102,0,0,12,'1 tbsp','Condiments'],
+  ['Hummus (2 tbsp)',50,2,4,3,'2 tbsp','Condiments'],
+  ['Hummus (¼ cup)',100,5,9,6,'¼ cup','Condiments'],
+  ['Guacamole (2 tbsp)',45,1,3,4,'2 tbsp','Condiments'],
+  ['Salsa (2 tbsp)',10,0,2,0,'2 tbsp','Condiments'],
+  ['Hot Sauce (1 tsp)',0,0,0,0,'1 tsp','Condiments'],
+  ['Honey (1 tbsp)',64,0,17,0,'1 tbsp','Condiments'],
+  ['Maple Syrup (1 tbsp)',52,0,13,0,'1 tbsp','Condiments'],
+  ['Soy Sauce (1 tbsp)',9,1,1,0,'1 tbsp','Condiments'],
+  ['Sriracha (1 tsp)',5,0,1,0,'1 tsp','Condiments'],
+  ['BBQ Sauce (2 tbsp)',60,0,14,0,'2 tbsp','Condiments'],
+  ['Ranch Dressing (2 tbsp)',130,1,2,13,'2 tbsp','Condiments'],
+  ['Caesar Dressing (2 tbsp)',160,1,1,17,'2 tbsp','Condiments'],
+  ['Olive Oil & Lemon (2 tbsp)',120,0,1,14,'2 tbsp','Condiments'],
+  ['Marinara Sauce (½ cup)',70,2,10,2,'½ cup','Condiments'],
+  ['Pesto (2 tbsp)',160,3,2,15,'2 tbsp','Condiments'],
+  ['Tahini (1 tbsp)',89,3,3,8,'1 tbsp','Condiments'],
+  // SNACKS
+  ['Dark Chocolate (2 squares)',100,1,12,6,'2 squares','Snacks'],
+  ['Organic Fruit Snack Pouch',50,0,13,0,'1 pouch (30g)','Snacks'],
+  ["Annie's Fruit Snacks",90,0,22,0,'1 pouch','Snacks'],
+  ['Lara Bar (Cashew Cookie)',230,6,26,12,'1 bar','Snacks'],
+  ['Kind Bar (Almond)',200,6,22,12,'1 bar','Snacks'],
+  ['RXBar',210,12,24,9,'1 bar','Snacks'],
+  ['Popcorn (3 cups air-popped)',93,3,19,1,'3 cups','Snacks'],
+  ['Pretzels (1 oz)',108,3,22,1,'1 oz','Snacks'],
+  ['Rice Cakes (2)',70,2,14,0,'2 cakes','Snacks'],
+  ['Clif Bar',250,9,44,5,'1 bar','Snacks'],
+  ['Goldfish Crackers (55 pieces)',140,3,20,5,'55 pieces','Snacks'],
+  // DRINKS
+  ['Body Armor (16oz)',90,0,23,0,'16 fl oz','Drinks'],
+  ['Body Armor Lyte (16oz)',20,0,5,0,'16 fl oz','Drinks'],
+  ['Body Armor Edge (16oz)',90,0,21,0,'16 fl oz','Drinks'],
+  ['Gatorade (12oz)',80,0,21,0,'12 fl oz','Drinks'],
+  ['Gatorade Zero (12oz)',10,0,2,0,'12 fl oz','Drinks'],
+  ['Powerade (12oz)',80,0,21,0,'12 fl oz','Drinks'],
+  ['Liquid IV (1 packet)',45,0,11,0,'1 packet in 16oz water','Drinks'],
+  ['Orange Juice (8oz)',110,2,26,0,'8 fl oz','Drinks'],
+  ['Chocolate Milk (8oz)',208,8,26,8,'8 fl oz','Drinks'],
+  ['Coconut Water (8oz)',45,2,9,0,'8 fl oz','Drinks'],
+  ['Tart Cherry Juice (8oz)',130,1,32,0,'8 fl oz','Drinks'],
+  ['Diet Coke / Coke Zero (12oz)',0,0,0,0,'12 fl oz','Drinks'],
+  ['Diet Pepsi (12oz)',0,0,0,0,'12 fl oz','Drinks'],
+  ['Water (8oz)',0,0,0,0,'8 fl oz','Drinks'],
+  ['Water (16oz)',0,0,0,0,'16 fl oz','Drinks'],
+  ['Water (32oz)',0,0,0,0,'32 fl oz','Drinks'],
+  ['Premier Protein Ready-to-Drink',160,30,5,3,'11.5 fl oz','Drinks'],
+  // FAST FOOD — McDONALD'S
+  ["McDonald's Grilled Chicken Sandwich",380,37,44,7,'1 sandwich','Fast Food'],
+  ["McDonald's McChicken",400,20,39,21,'1 sandwich','Fast Food'],
+  ["McDonald's Big Mac",550,25,45,30,'1 burger','Fast Food'],
+  ["McDonald's 10pc McNuggets",420,23,26,24,'10 pieces','Fast Food'],
+  ["McDonald's Large Fries",490,6,66,23,'1 large','Fast Food'],
+  ["McDonald's Medium Fries",320,4,43,15,'1 medium','Fast Food'],
+  ["McDonald's Egg McMuffin",300,17,30,12,'1 sandwich','Fast Food'],
+  ["McDonald's Fruit & Maple Oatmeal",320,6,64,4,'1 serving','Fast Food'],
+  ["McDonald's Side Salad",15,1,3,0,'no dressing','Fast Food'],
+  ["McDonald's Premium Grilled Chicken Salad",220,30,12,6,'no dressing','Fast Food'],
+  // FAST FOOD — CHICK-FIL-A
+  ["Chick-fil-A Grilled Chicken Sandwich",390,37,40,11,'1 sandwich','Fast Food'],
+  ["Chick-fil-A Grilled Chicken Nuggets (8pc)",140,25,3,3,'8 pieces','Fast Food'],
+  ["Chick-fil-A Classic Sandwich",470,29,56,18,'1 sandwich','Fast Food'],
+  ["Chick-fil-A Nuggets (8pc)",250,27,11,11,'8 pieces','Fast Food'],
+  ["Chick-fil-A Waffle Fries (medium)",420,5,57,19,'1 medium','Fast Food'],
+  ["Chick-fil-A Grilled Nuggets (12pc)",200,38,4,4,'12 pieces','Fast Food'],
+  ["Chick-fil-A Side Salad",80,5,8,4,'no dressing','Fast Food'],
+  ["Chick-fil-A Greek Yogurt Parfait",230,13,39,3,'1 parfait','Fast Food'],
+  ["Chick-fil-A Fruit Cup (large)",70,1,17,0,'1 large cup','Fast Food'],
+  // FAST FOOD — CHIPOTLE
+  ['Chipotle Chicken Bowl (no rice)',355,43,16,14,'bowl base','Fast Food'],
+  ['Chipotle Chicken Burrito Bowl (full)',725,50,81,22,'full bowl avg','Fast Food'],
+  ['Chipotle Chicken (4oz)',180,32,0,7,'4oz','Fast Food'],
+  ['Chipotle White Rice (4oz)',210,4,40,4,'4oz','Fast Food'],
+  ['Chipotle Brown Rice (4oz)',200,5,38,5,'4oz','Fast Food'],
+  ['Chipotle Black Beans (4oz)',120,7,22,1,'4oz','Fast Food'],
+  ['Chipotle Pinto Beans (4oz)',115,7,19,2,'4oz','Fast Food'],
+  ['Chipotle Fajita Veggies',25,1,5,1,'1 serving','Fast Food'],
+  ['Chipotle Guacamole',230,3,12,22,'1 serving','Fast Food'],
+  ['Chipotle Cheese (1oz)',110,7,0,9,'1oz','Fast Food'],
+  ['Chipotle Sour Cream',110,2,2,9,'1 serving','Fast Food'],
+  ['Chipotle Salsa (fresh tomatillo)',30,1,7,1,'1 serving','Fast Food'],
+  ['Chipotle Chips (1 serving)',540,7,73,24,'1 side bag','Fast Food'],
+  // FAST FOOD — SUBWAY
+  ["Subway 6\" Turkey Breast",280,18,45,4,'6" sub','Fast Food'],
+  ["Subway 6\" Grilled Chicken",310,26,45,5,'6" sub','Fast Food'],
+  ["Subway 6\" Tuna",480,23,45,24,'6" sub','Fast Food'],
+  ["Subway Grilled Chicken Salad",110,20,9,2,'no dressing','Fast Food'],
+  ["Subway Rotisserie Chicken 6\"",350,37,43,6,'6" sub','Fast Food'],
+  // FAST FOOD — TACO BELL
+  ["Taco Bell Chicken Soft Taco",200,13,21,7,'1 taco','Fast Food'],
+  ["Taco Bell Fresco Grilled Chicken Burrito",340,22,48,6,'1 burrito','Fast Food'],
+  ["Taco Bell Power Bowl Chicken",470,26,50,20,'1 bowl','Fast Food'],
+  ["Taco Bell Bean Burrito",350,13,55,9,'1 burrito','Fast Food'],
+  ["Taco Bell Black Bean Crunchwrap Supreme",530,17,74,19,'1 item','Fast Food'],
+  // FAST FOOD — PANERA
+  ["Panera You Pick 2 Half Chicken Sandwich",370,28,37,12,'half sandwich','Fast Food'],
+  ["Panera Grilled Chicken Caesar Salad",420,40,17,22,'full salad','Fast Food'],
+  ["Panera 10 Vegetable Soup (cup)",90,3,16,1,'1 cup','Fast Food'],
+  ["Panera Steel Cut Oatmeal",290,8,56,5,'1 bowl','Fast Food'],
+  ["Panera Avocado Egg White & Spinach",350,23,34,13,'1 sandwich','Fast Food'],
+  // FAST FOOD — STARBUCKS
+  ["Starbucks Egg Bites (Bacon & Gruyere, 2)",310,20,14,19,'2 bites','Fast Food'],
+  ["Starbucks Turkey Bacon Sandwich",230,17,27,6,'1 sandwich','Fast Food'],
+  ["Starbucks Protein Box (Egg & Cheese)",470,28,41,22,'1 box','Fast Food'],
+  ["Starbucks Oatmeal (Classic)",160,5,28,2,'1 cup','Fast Food'],
+  ["Starbucks Tall Latte (2% milk)",150,10,15,6,'12 fl oz','Fast Food'],
+  ["Starbucks Tall Vanilla Latte (2%)",200,10,27,6,'12 fl oz','Fast Food'],
+  // FAST FOOD — WENDY'S
+  ["Wendy's Grilled Chicken Sandwich",380,36,37,9,'1 sandwich','Fast Food'],
+  ["Wendy's Apple Pecan Chicken Salad",550,32,50,22,'full salad','Fast Food'],
+  ["Wendy's Small Chili",170,15,17,4,'1 small','Fast Food'],
+  ["Wendy's Jr. Hamburger",250,13,25,10,'1 burger','Fast Food'],
+  // FAST FOOD — PIZZA
+  ['Pizza (cheese slice, thin crust)',190,10,22,7,'1 slice','Fast Food'],
+  ['Pizza (pepperoni slice)',240,12,23,11,'1 slice','Fast Food'],
+  ['Pizza (chicken, thin)',210,15,24,5,'1 slice','Fast Food'],
+  // MCDEVITT CAFETERIA
+  ['McDevitt: Chicken Caesar Value Meal',380,32,18,16,'Full meal $5','McDevitt'],
+  ['McDevitt: Asian Rice Bowl',420,22,68,8,'Full meal','McDevitt'],
+  ['McDevitt: Taco Bar (Chicken)',450,28,52,12,'Full meal','McDevitt'],
+  ['McDevitt: Garden Salad + Egg',180,10,12,9,'Full salad','McDevitt'],
+  ['McDevitt: Baked Ziti (no meat sauce)',480,18,72,14,'Full serving','McDevitt'],
+  ['McDevitt: Tuna Sandwich',320,28,30,8,'Sandwich','McDevitt'],
+  ['McDevitt: Buffalo Chicken',420,28,36,16,'Sandwich','McDevitt'],
+  // FULL MEAL COMBOS
+  ['Oatmeal + Banana + Almond Butter',313,9,57,12,'Full breakfast','Meals'],
+  ['Scrambled Eggs (3) + Toast',300,22,17,15,'Full breakfast','Meals'],
+  ['Avocado Toast + 2 Eggs',380,18,28,22,'Full breakfast','Meals'],
+  ['Protein Smoothie (banana+spinach+powder+milk)',290,28,35,5,'Full blender','Meals'],
+  ['Chicken Caesar Salad (homemade)',350,30,16,17,'Full salad','Meals'],
+  ['Tuna Sandwich (whole grain)',370,32,34,10,'Full sandwich','Meals'],
+  ['Chicken & Brown Rice Bowl',440,42,48,8,'Full bowl','Meals'],
+  ['Salmon + Brown Rice + Broccoli',550,52,50,18,'Full dinner plate','Meals'],
+  ['Chicken Thigh + Sweet Potato + Salad',520,40,40,18,'Full dinner plate','Meals'],
+  ['Turkey Breast + Green Beans + Rice',380,38,40,6,'Full dinner plate','Meals'],
+  ['Black Bean Tacos (2 corn tortillas)',380,14,58,10,'2 tacos','Meals'],
+  ['Shrimp Stir Fry + Brown Rice',450,32,54,10,'Full plate','Meals'],
+];
+
+// Extended categories including fast food presets
+const DB_CATEGORIES = ['All','Fruits','Vegetables','Meats','Dairy','Grains','Nuts & Seeds','Condiments','Snacks','Drinks','Fast Food','McDevitt','Meals'];
+
+// Fast food sub-brands for the preset buttons
+const FAST_FOOD_BRANDS = ["McDonald's","Chick-fil-A","Chipotle","Subway","Taco Bell","Panera","Starbucks","Wendy's","Pizza"];
+
+let dbCurrentCat = 'All';
+let dbFastFoodFilter = null; // null = show all fast food
+let dbMealTarget = 'breakfast';
+let dbOpen = false;
+
+function openFoodDB(mealHint){
+  if(mealHint){
+    dbMealTarget = mealHint;
+    // Update buttons
+    document.querySelectorAll('.meal-sel-btn').forEach(b=>{
+      b.classList.toggle('selected', b.dataset.meal === mealHint);
+    });
+    updateActiveBadge();
+  }
+  document.getElementById('foodModal').classList.add('open');
+  dbOpen = true;
+  buildCatTabs();
+  renderFoodList();
+  setTimeout(()=>document.getElementById('dbSearchInput').focus(),200);
+}
+
+function closeFoodDB(){
+  document.getElementById('foodModal').classList.remove('open');
+  dbOpen = false;
+}
+
+function handleOverlayClick(e){
+  if(e.target === document.getElementById('foodModal')) closeFoodDB();
+}
+
+function updateActiveBadge(){
+  const labels = {breakfast:'🌅 Breakfast',snack1:'🍎 Snack 1',lunch:'🥗 Lunch',snack2:'🍊 Snack 2',dinner:'🍽 Dinner',evening:'🌙 Evening'};
+  const badge = document.getElementById('activeMealBadge');
+  if(badge) badge.textContent = labels[dbMealTarget] || dbMealTarget;
+}
+
+function buildCatTabs(){
+  const wrap = document.getElementById('catTabs');
+  let html = DB_CATEGORIES.map(c=>`
+    <button class="cat-tab${c===dbCurrentCat?' active':''}" onclick="setCat('${c}')">${c}</button>
+  `).join('');
+  wrap.innerHTML = html;
+}
+
+function setCat(cat){
+  dbCurrentCat = cat;
+  dbFastFoodFilter = null;
+  buildCatTabs();
+  renderFoodList();
+}
+
+function filterFoods(){
+  dbFastFoodFilter = null;
+  renderFoodList();
+  const q = document.getElementById('dbSearchInput').value;
+  if(!q){ document.getElementById('aiPanel').classList.remove('open'); }
+}
+
+function renderFoodList(){
+  const q = (document.getElementById('dbSearchInput').value||'').toLowerCase().trim();
+  const list = document.getElementById('foodList');
+
+  let items = FOOD_DB.filter(f=>{
+    const catMatch = dbCurrentCat==='All' || f[6]===dbCurrentCat;
+    const brandMatch = !dbFastFoodFilter || f[0].toLowerCase().startsWith(dbFastFoodFilter.toLowerCase()) || f[0].includes(dbFastFoodFilter);
+    const qMatch = !q || f[0].toLowerCase().includes(q) || f[6].toLowerCase().includes(q);
+    return catMatch && brandMatch && qMatch;
+  });
+
+  let html = '';
+
+  // Show fast food brand filters when on Fast Food tab
+  if(dbCurrentCat === 'Fast Food' && !q){
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 0 4px;">`;
+    html += `<button class="quick-chip${!dbFastFoodFilter?' active-chip':''}" onclick="setBrand(null)">All</button>`;
+    FAST_FOOD_BRANDS.forEach(b=>{
+      const isActive = dbFastFoodFilter === b;
+      html += `<button class="quick-chip${isActive?' active-chip':''}" onclick="setBrand('${b.replace(/'/g,"\\'")}')">${b}</button>`;
+    });
+    html += `</div>`;
+  }
+
+  if(!items.length){
+    html += `<div class="no-results">No results — try AI Search above ✨</div>`;
+    list.innerHTML = html;
+    return;
+  }
+
+  html += items.map(f=>`
+    <div class="food-db-item" onclick="addFromDB('${f[0].replace(/'/g,"\\'")}',${f[1]},${f[2]},${f[3]},${f[4]})">
+      <div class="food-db-left">
+        <div class="food-db-name">${f[0]}</div>
+        <div class="food-db-sub">${f[5]} · <span style="color:var(--muted);font-size:10px;">${f[6]}</span></div>
+        <div class="food-db-macros">
+          <span class="fmac p">P: ${f[2]}g</span>
+          <span class="fmac c">C: ${f[3]}g</span>
+          <span class="fmac f">F: ${f[4]}g</span>
+        </div>
+      </div>
+      <span class="food-db-cal">${f[1]}</span>
+      <button class="food-db-add" onclick="event.stopPropagation();addFromDB('${f[0].replace(/'/g,"\\'")}',${f[1]},${f[2]},${f[3]},${f[4]})">+</button>
+    </div>`).join('');
+
+  list.innerHTML = html;
+}
+
+function setBrand(brand){
+  dbFastFoodFilter = brand;
+  renderFoodList();
+}
+
+function addFromDB(name, cal, pro, carb, fat){
+  const day = getDay(getKey());
+  day.meals[dbMealTarget].push({name,cal,pro,carb,fat,id:Date.now()});
+  saveState();
+  renderMeal(dbMealTarget);
+  updateTotals();
+  showToast(`✓ Added to ${dbMealTarget}: ${name}`);
+}
+
+function selectMealTarget(btn){
+  dbMealTarget = btn.dataset.meal;
+  document.querySelectorAll('.meal-sel-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateActiveBadge();
+}
+
+function searchKeydown(e){ if(e.key==='Enter') aiSearch(); }
+
+// ── AI SEARCH ─────────────────────────────────────────────────────────
+async function aiSearch(){
+  const q = document.getElementById('dbSearchInput').value.trim();
+  if(!q){ document.getElementById('dbSearchInput').focus(); return; }
+
+  const panel = document.getElementById('aiPanel');
+  const btn   = document.getElementById('aiSearchBtn');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Searching...';
+  panel.className = 'ai-results-panel open';
+  panel.innerHTML = `<div class="ai-loading"><span class="spinner"></span>&nbsp; Looking up "<strong>${q}</strong>"...</div>`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are a nutrition facts assistant. The user will give you a food or drink name. Return ONLY a valid JSON array with 1-4 results. No markdown, no explanation, no code fences — ONLY the raw JSON array.
+
+Each object must have exactly these fields:
+{"name":"Food Name (serving)","cal":000,"pro":0,"carb":0,"fat":0,"serving":"description"}
+
+Rules:
+- Use accurate USDA or real label data
+- cal, pro, carb, fat must be integers (no decimals)
+- Include the serving size in the name field
+- For branded items use actual label values
+- Return ONLY the JSON array starting with [ and ending with ]`,
+        messages: [{ role: 'user', content: `Nutrition facts for: "${q}"` }]
+      })
+    });
+
+    if(!response.ok){
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : '[]';
+
+    // Robustly parse — strip any accidental markdown
+    let cleaned = rawText.trim();
+    cleaned = cleaned.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'');
+    // Find JSON array boundaries
+    const arrStart = cleaned.indexOf('[');
+    const arrEnd   = cleaned.lastIndexOf(']');
+    if(arrStart === -1 || arrEnd === -1) throw new Error('No JSON array in response');
+    cleaned = cleaned.slice(arrStart, arrEnd+1);
+
+    let results;
+    try { results = JSON.parse(cleaned); }
+    catch(e){ throw new Error('JSON parse failed: ' + e.message); }
+
+    if(!Array.isArray(results) || results.length === 0){
+      panel.innerHTML = `<div class="ai-status">✨ AI Search</div>
+        <div class="no-results">No results found for "<strong>${q}</strong>". Try a different search term.</div>`;
+    } else {
+      panel.innerHTML = `<div class="ai-status">✨ Found ${results.length} result${results.length>1?'s':''} for "<strong>${q}</strong>" — tap to add to <strong>${dbMealTarget}</strong></div>` +
+        results.map(r => {
+          const name = (r.name||'Unknown').replace(/'/g,"&#39;");
+          const cal  = parseInt(r.cal)||0;
+          const pro  = parseInt(r.pro)||0;
+          const carb = parseInt(r.carb)||0;
+          const fat  = parseInt(r.fat)||0;
+          const srv  = r.serving||'';
+          return `<div class="ai-result-item" onclick="addAIResult('${name}',${cal},${pro},${carb},${fat})">
+            <div style="flex:1;">
+              <div class="ai-res-name">${name}</div>
+              <div class="ai-res-macros">P: ${pro}g &nbsp;·&nbsp; C: ${carb}g &nbsp;·&nbsp; F: ${fat}g${srv?' &nbsp;·&nbsp; '+srv:''}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+              <span class="ai-res-cal">${cal}</span>
+              <button class="food-db-add" onclick="event.stopPropagation();addAIResult('${name}',${cal},${pro},${carb},${fat})">+</button>
+            </div>
+          </div>`;
+        }).join('');
+    }
+
+  } catch(err) {
+    console.error('AI Search error:', err);
+    panel.innerHTML = `<div class="ai-status" style="color:#FCA5A5;">⚠️ Search error: ${err.message}. Check your connection and try again.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span class="btn-ico">✨</span> AI Search';
+}
+
+function addAIResult(name, cal, pro, carb, fat){
+  const day = getDay(getKey());
+  day.meals[dbMealTarget].push({name, cal, pro, carb, fat, id:Date.now()});
+  saveState();
+  renderMeal(dbMealTarget);
+  updateTotals();
+  showToast(`✓ Added to ${dbMealTarget}: ${name}`);
+}
+
+
+// ══════════════════════════════════════════════════════
+// AI FOOD SCANNER — CAMERA + IMAGE ANALYSIS
+// ══════════════════════════════════════════════════════
+let scanStream    = null;
+let scanImageB64  = null;
+let scanMealTarget = 'breakfast';
+
+function openScanner() {
+  document.getElementById('scanModal').classList.add('open');
+  resetScannerUI();
+}
+
+function closeScanner() {
+  document.getElementById('scanModal').classList.remove('open');
+  stopCamera();
+}
+
+function resetScannerUI() {
+  scanImageB64 = null;
+  document.getElementById('scanResults').innerHTML = '';
+  document.getElementById('scanAnalyzeRow').style.display = 'none';
+  document.getElementById('scanPreviewWrap').classList.remove('show');
+  document.getElementById('scanCameraWrap').style.display = '';
+  document.getElementById('scanPlaceholder').style.display = '';
+  document.getElementById('scanVideo').style.display = 'none';
+  document.getElementById('scanCorners').classList.remove('show');
+  document.getElementById('btnStartCam').style.display = '';
+  document.getElementById('btnCapture').style.display = 'none';
+  document.getElementById('btnRetake').style.display = 'none';
+  stopCamera();
+}
+
+function setScanMeal(btn) {
+  scanMealTarget = btn.dataset.meal;
+  document.querySelectorAll('.scan-meal-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ── CAMERA ───────────────────────────────────────────
+async function startCamera() {
+  try {
+    // Request back camera on mobile, any camera on desktop
+    const constraints = {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 1280 },
+        height: { ideal: 960 }
+      }
+    };
+    scanStream = await navigator.mediaDevices.getUserMedia(constraints);
+    const video = document.getElementById('scanVideo');
+    video.srcObject = scanStream;
+    video.style.display = 'block';
+    document.getElementById('scanPlaceholder').style.display = 'none';
+    document.getElementById('scanCorners').classList.add('show');
+    document.getElementById('btnStartCam').style.display = 'none';
+    document.getElementById('btnCapture').style.display = '';
+    showToast('Camera ready — point at your food 📷');
+  } catch(err) {
+    console.error('Camera error:', err);
+    document.getElementById('scanResults').innerHTML =
+      `<div class="scan-error">📵 Camera not available: ${err.message}<br><br>Use "Upload Photo" instead to pick from your gallery.</div>`;
+  }
+}
+
+function stopCamera() {
+  if (scanStream) {
+    scanStream.getTracks().forEach(t => t.stop());
+    scanStream = null;
+  }
+  const video = document.getElementById('scanVideo');
+  video.srcObject = null;
+  video.style.display = 'none';
+}
+
+function capturePhoto() {
+  const video  = document.getElementById('scanVideo');
+  const canvas = document.getElementById('scanCanvas');
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+
+  // Get base64 (strip the data:image/jpeg;base64, prefix)
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+  scanImageB64  = dataUrl.split(',')[1];
+
+  // Show preview
+  document.getElementById('scanPreview').src = dataUrl;
+  document.getElementById('scanPreviewWrap').classList.add('show');
+  document.getElementById('scanCameraWrap').style.display = 'none';
+  document.getElementById('scanAnalyzeRow').style.display = '';
+  document.getElementById('btnCapture').style.display = 'none';
+  document.getElementById('btnRetake').style.display = '';
+  stopCamera();
+}
+
+// ── UPLOAD ───────────────────────────────────────────
+function triggerUpload() {
+  document.getElementById('scanUploadInput').click();
+}
+
+function handleUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    scanImageB64  = dataUrl.split(',')[1];
+    document.getElementById('scanPreview').src = dataUrl;
+    document.getElementById('scanPreviewWrap').classList.add('show');
+    document.getElementById('scanCameraWrap').style.display = 'none';
+    document.getElementById('scanAnalyzeRow').style.display = '';
+    document.getElementById('btnRetake').style.display = '';
+    document.getElementById('btnCapture').style.display = 'none';
+    stopCamera();
+    document.getElementById('btnStartCam').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+  event.target.value = ''; // reset so same file can be re-uploaded
+}
+
+function retakePhoto() {
+  resetScannerUI();
+}
+
+// ── AI ANALYSIS ──────────────────────────────────────
+async function analyzeFood() {
+  if (!scanImageB64) return;
+
+  const resultsDiv = document.getElementById('scanResults');
+  const analyzeBtn = document.getElementById('btnAnalyze');
+
+  analyzeBtn.disabled = true;
+  analyzeBtn.innerHTML = '<span class="spinner"></span> Analyzing food...';
+  resultsDiv.innerHTML = `<div class="scan-status"><span class="spinner"></span> AI is identifying your food and calculating nutrition facts...</div>`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        system: `You are a nutrition expert and food identification AI. Analyze food images and return accurate nutrition estimates.
+
+ALWAYS return ONLY a valid JSON object — no markdown, no explanation, no code fences.
+
+Format:
+{
+  "description": "Brief description of what you see in the image (1-2 sentences)",
+  "confidence": "high|medium|low",
+  "foods": [
+    {
+      "name": "Food name with portion estimate",
+      "cal": 000,
+      "pro": 0,
+      "carb": 0,
+      "fat": 0,
+      "serving": "estimated portion size"
+    }
+  ]
+}
+
+Rules:
+- Identify ALL visible food items separately
+- Estimate realistic portion sizes based on visual cues
+- cal/pro/carb/fat must be integers
+- If image is unclear, still give best estimate with low confidence
+- Include 1-5 food items depending on what's visible
+- If no food is detected, return foods: [] and explain in description`,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: 'image/jpeg',
+                data: scanImageB64
+              }
+            },
+            {
+              type: 'text',
+              text: 'What food is in this image? Give me detailed nutrition facts for everything you can see. Be specific about portion sizes.'
+            }
+          ]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `API error ${response.status}`);
+    }
+
+    const data = await response.json();
+    const rawText = (data.content && data.content[0] && data.content[0].text) || '{}';
+
+    // Parse JSON robustly
+    let cleaned = rawText.trim()
+      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/, '');
+    const objStart = cleaned.indexOf('{');
+    const objEnd   = cleaned.lastIndexOf('}');
+    if (objStart === -1 || objEnd === -1) throw new Error('No JSON in AI response');
+    cleaned = cleaned.slice(objStart, objEnd + 1);
+
+    let result;
+    try { result = JSON.parse(cleaned); }
+    catch(e) { throw new Error('Could not parse AI response'); }
+
+    renderScanResults(result);
+
+  } catch(err) {
+    console.error('Scan error:', err);
+    resultsDiv.innerHTML = `<div class="scan-error">
+      ⚠️ Analysis failed: ${err.message}<br><br>
+      <strong>Tips:</strong><br>
+      • Make sure the food is well-lit and clearly visible<br>
+      • Try uploading a clearer photo<br>
+      • This feature requires an internet connection
+    </div>`;
+  }
+
+  analyzeBtn.disabled = false;
+  analyzeBtn.innerHTML = '✨ Analyze Food with AI';
+}
+
+function renderScanResults(result) {
+  const div = document.getElementById('scanResults');
+  const foods = result.foods || [];
+  const confColor = { high:'#22C55E', medium:'#F0A500', low:'#F97316' };
+  const conf = result.confidence || 'medium';
+
+  if (!foods.length) {
+    div.innerHTML = `
+      <div class="scan-result-hdr">AI Analysis</div>
+      <div class="scan-result-desc">${result.description || 'Could not identify food clearly.'}<br><br>Try a clearer, better-lit photo.</div>`;
+    return;
+  }
+
+  const totalCal  = foods.reduce((s,f) => s + (parseInt(f.cal)||0), 0);
+  const totalPro  = foods.reduce((s,f) => s + (parseInt(f.pro)||0), 0);
+  const totalCarb = foods.reduce((s,f) => s + (parseInt(f.carb)||0), 0);
+  const totalFat  = foods.reduce((s,f) => s + (parseInt(f.fat)||0), 0);
+
+  let html = `
+    <div class="scan-result-hdr" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>✨ AI Identified ${foods.length} item${foods.length>1?'s':''}</span>
+      <span style="font-size:10px;color:${confColor[conf]};font-weight:700;text-transform:uppercase;letter-spacing:1px;">${conf} confidence</span>
+    </div>
+    <div class="scan-result-desc">${result.description || ''}</div>`;
+
+  // Total summary if multiple foods
+  if (foods.length > 1) {
+    html += `<div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);border-radius:8px;padding:10px 12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:12px;font-weight:800;color:#A78BFA;margin-bottom:2px;">TOTAL (${foods.length} items)</div>
+        <div style="font-size:11px;color:var(--muted2);">P:${totalPro}g &nbsp;C:${totalCarb}g &nbsp;F:${totalFat}g</div>
+      </div>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:#A78BFA;">${totalCal}</span>
+    </div>`;
+  }
+
+  html += foods.map((f,i) => {
+    const name  = (f.name||'Unknown food').replace(/'/g,"&#39;");
+    const cal   = parseInt(f.cal)||0;
+    const pro   = parseInt(f.pro)||0;
+    const carb  = parseInt(f.carb)||0;
+    const fat   = parseInt(f.fat)||0;
+    const srv   = f.serving || '';
+    return `<div class="scan-food-item" onclick="addScanResult('${name}',${cal},${pro},${carb},${fat})">
+      <div class="scan-food-left">
+        <div class="scan-food-name">${name}</div>
+        <div class="scan-food-macros">P:${pro}g &nbsp;·&nbsp; C:${carb}g &nbsp;·&nbsp; F:${fat}g${srv?' &nbsp;·&nbsp; '+srv:''}</div>
+      </div>
+      <span class="scan-food-cal">${cal}</span>
+      <button class="scan-add-btn" onclick="event.stopPropagation();addScanResult('${name}',${cal},${pro},${carb},${fat})">+</button>
+    </div>`;
+  }).join('');
+
+  if (foods.length > 1) {
+    html += `<button onclick="addAllScanResults(${JSON.stringify(foods)})"
+      style="width:100%;padding:11px;margin-top:4px;background:linear-gradient(135deg,#6366F1,#8B5CF6);border:none;border-radius:10px;color:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;">
+      ➕ Add All ${foods.length} Items (${totalCal} cal)
+    </button>`;
+  }
+
+  div.innerHTML = html;
+}
+
+function addScanResult(name, cal, pro, carb, fat) {
+  const day = getDay(getKey());
+  day.meals[scanMealTarget].push({ name, cal, pro, carb, fat, id: Date.now() });
+  saveState();
+  renderMeal(scanMealTarget);
+  updateTotals();
+  showToast(`✓ Added to ${scanMealTarget}: ${name}`);
+}
+
+function addAllScanResults(foods) {
+  const day = getDay(getKey());
+  foods.forEach(f => {
+    day.meals[scanMealTarget].push({
+      name:  f.name,
+      cal:   parseInt(f.cal)||0,
+      pro:   parseInt(f.pro)||0,
+      carb:  parseInt(f.carb)||0,
+      fat:   parseInt(f.fat)||0,
+      id:    Date.now() + Math.random()
+    });
+  });
+  saveState();
+  renderMeal(scanMealTarget);
+  updateTotals();
+  showToast(`✓ Added ${foods.length} items to ${scanMealTarget}`);
+  closeScanner();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────
+loadState();
+currentDay = '2026-03-04';
+buildNav();
+loadGoalsUI();
+renderAll();
+// Set header date
+document.getElementById('headerDate').textContent = 'Wednesday, March 4';
+// Scroll to today
+setTimeout(()=>{
+  const btn=document.getElementById('navbtn-'+currentDay);
+  if(btn) btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+},100);
+</script>
+
+<!-- ═══════════════════════════════════════════════════
+     PWA: SERVICE WORKER + INSTALL PROMPT
+═══════════════════════════════════════════════════ -->
+<script>
+// ── INLINE MANIFEST INJECTION ──────────────────────────
+// Injects a real manifest blob so Chrome/Edge can install as a proper app
+(function(){
+  const manifest = {
+    name: "Sprint Fuel — Athlete Nutrition Tracker",
+    short_name: "Sprint Fuel",
+    description: "Daily nutrition tracker for Bishop McDevitt sprint athletes",
+    start_url: "./",
+    scope: "./",
+    display: "standalone",
+    orientation: "portrait-primary",
+    background_color: "#0a0e1a",
+    theme_color: "#F0A500",
+    categories: ["health","fitness","food"],
+    icons: [
+      {
+        src: "data:image/svg+xml," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'>
+          <rect width='512' height='512' rx='100' fill='#0a0e1a'/>
+          <rect width='512' height='512' rx='100' fill='url(#g)'/>
+          <defs>
+            <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+              <stop offset='0' stop-color='#F0A500'/>
+              <stop offset='1' stop-color='#FF6B00'/>
+            </linearGradient>
+          </defs>
+          <text x='256' y='345' font-size='260' text-anchor='middle' dominant-baseline='middle'>⚡</text>
+        </svg>`),
+        sizes: "512x512",
+        type: "image/svg+xml",
+        purpose: "any maskable"
+      }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel   = 'manifest';
+  link.href  = url;
+  document.head.appendChild(link);
+})();
+
+// ── SERVICE WORKER ─────────────────────────────────────
+// Registers an inline service worker that caches the full app for offline use
+const SW_CODE = `
+const CACHE = 'sprint-fuel-v3';
+const FONTS = [
+  'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;500;600;700;800;900&display=swap'
+];
+
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(FONTS).catch(()=>{}))
+  );
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  // Cache-first for fonts/static, network-first for API
+  if(e.request.url.includes('anthropic.com')){
+    e.respondWith(fetch(e.request).catch(()=>new Response('{"error":"offline"}',{headers:{'Content-Type':'application/json'}})));
+    return;
+  }
+  if(e.request.url.includes('fonts.goog') || e.request.url.includes('fonts.gstatic')){
+    e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{
+      const clone = res.clone();
+      caches.open(CACHE).then(c=>c.put(e.request,clone));
+      return res;
+    })));
+    return;
+  }
+  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
+});
+`;
+
+if('serviceWorker' in navigator){
+  const blob = new Blob([SW_CODE], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swURL, {scope: './'})
+    .then(reg => {
+      console.log('Sprint Fuel SW registered:', reg.scope);
+    })
+    .catch(err => console.log('SW registration failed:', err));
+}
+
+// ── INSTALL PROMPT ─────────────────────────────────────
+let deferredPrompt = null;
+const installBanner = document.getElementById('installBanner');
+const installBtn    = document.getElementById('installBtn');
+const dismissBtn    = document.getElementById('dismissInstall');
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show banner only if not dismissed before
+  if(!localStorage.getItem('installDismissed')){
+    installBanner.style.display = 'flex';
+    installBanner.style.animation = 'slideDown .4s ease';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  installBanner.style.display = 'none';
+  deferredPrompt = null;
+  showToast('✅ Sprint Fuel installed! Open it from your apps.');
+});
+
+if(installBtn){
+  installBtn.addEventListener('click', async () => {
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted') showToast('Installing Sprint Fuel...');
+    deferredPrompt = null;
+    installBanner.style.display = 'none';
+  });
+}
+
+if(dismissBtn){
+  dismissBtn.addEventListener('click', () => {
+    installBanner.style.display = 'none';
+    localStorage.setItem('installDismissed', '1');
+  });
+}
+
+// Check if already running as installed PWA
+if(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone){
+  document.body.classList.add('is-pwa');
+  console.log('Running as installed PWA');
+}
+</script>
+
+
+<script>
+window.addEventListener('online',  () => document.body.classList.remove('offline'));
+window.addEventListener('offline', () => document.body.classList.add('offline'));
+if(!navigator.onLine) document.body.classList.add('offline');
+</script>
+
+
+<!-- ═══ CAMERA SCAN FAB ═══ -->
+<button class="scan-fab" onclick="openScanner()" title="AI Food Scanner">
+  📷
+  <span class="scan-fab-label">SCAN</span>
+</button>
+
+<!-- ═══ CAMERA SCAN MODAL ═══ -->
+<div class="scan-modal-overlay" id="scanModal">
+  <div class="scan-modal">
+
+    <!-- HEADER -->
+    <div class="scan-hdr">
+      <div class="scan-title">📷 AI Food Scanner</div>
+      <button class="scan-close" onclick="closeScanner()">✕ Close</button>
+    </div>
+
+    <!-- MEAL TARGET -->
+    <div class="scan-meal-target-row" id="scanMealRow">
+      <button class="scan-meal-btn selected" data-meal="breakfast" onclick="setScanMeal(this)">🌅 Breakfast</button>
+      <button class="scan-meal-btn" data-meal="snack1" onclick="setScanMeal(this)">🍎 Snack 1</button>
+      <button class="scan-meal-btn" data-meal="lunch" onclick="setScanMeal(this)">🥗 Lunch</button>
+      <button class="scan-meal-btn" data-meal="snack2" onclick="setScanMeal(this)">🍊 Snack 2</button>
+      <button class="scan-meal-btn" data-meal="dinner" onclick="setScanMeal(this)">🍽 Dinner</button>
+      <button class="scan-meal-btn" data-meal="evening" onclick="setScanMeal(this)">🌙 Evening</button>
+    </div>
+
+    <!-- CAMERA AREA -->
+    <div class="scan-camera-wrap" id="scanCameraWrap">
+      <video id="scanVideo" playsinline autoplay muted></video>
+      <canvas id="scanCanvas"></canvas>
+      <div class="scan-corners" id="scanCorners">
+        <div class="scan-corner sc-tl"></div>
+        <div class="scan-corner sc-tr"></div>
+        <div class="scan-corner sc-bl"></div>
+        <div class="scan-corner sc-br"></div>
+      </div>
+      <div class="scan-placeholder" id="scanPlaceholder">
+        <div class="scan-placeholder-ico">📷</div>
+        <div class="scan-placeholder-txt">Take a photo or upload an image<br>of your food to get AI nutrition info</div>
+      </div>
+    </div>
+
+    <!-- PREVIEW (after capture) -->
+    <div class="scan-preview-wrap" id="scanPreviewWrap">
+      <img id="scanPreview" src="" alt="Food preview"/>
+      <div class="scan-preview-badge">📸 Photo captured</div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="scan-controls">
+      <button class="scan-btn primary" id="btnStartCam" onclick="startCamera()">📷 Use Camera</button>
+      <button class="scan-btn secondary" id="btnCapture" onclick="capturePhoto()" style="display:none">📸 Snap Photo</button>
+      <button class="scan-btn secondary" onclick="triggerUpload()">🖼 Upload Photo</button>
+      <button class="scan-btn secondary" id="btnRetake" onclick="retakePhoto()" style="display:none">🔄 Retake</button>
+      <input type="file" id="scanUploadInput" accept="image/*" capture="environment" onchange="handleUpload(event)"/>
+    </div>
+
+    <!-- ANALYZE -->
+    <div class="scan-analyze-row" id="scanAnalyzeRow" style="display:none">
+      <button class="scan-analyze-btn" id="btnAnalyze" onclick="analyzeFood()">
+        ✨ Analyze Food with AI
+      </button>
+    </div>
+
+    <!-- RESULTS AREA -->
+    <div class="scan-results" id="scanResults"></div>
+
+  </div>
+</div>
+
+</body>
+</html>
