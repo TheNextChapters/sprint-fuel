@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Sprint Fuel — Bishop McDevitt Athlete Tracker</title>
+<meta name="application-name" content="Sprint Fuel">
+<meta name="description" content="Bishop McDevitt sprint athlete nutrition + training tracker">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sprint Fuel">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%230a0e1a'/><text x='256' y='360' font-size='300' text-anchor='middle'>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0e1a; --surface:#111827; --surface2:#1a2235; --surface3:#222d42;
+  --border:#2a3550; --gold:#F0A500; --gold2:#FFD060; --blue:#3B82F6;
+  --green:#22C55E; --red:#EF4444; --purple:#A855F7; --teal:#14B8A6;
+  --orange:#F97316; --text:#F1F5F9; --muted:#64748B; --muted2:#94A3B8;
+  --radius:14px; --radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  background-image:radial-gradient(ellipse at 10% 0%,rgba(59,130,246,.08) 0%,transparent 50%),radial-gradient(ellipse at 90% 100%,rgba(240,165,0,.06) 0%,transparent 50%);}
+
+/* ── TABS ── */
+.tab-bar{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:61px;z-index:190;overflow-x:auto;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex:1;min-width:90px;padding:12px 8px;background:none;border:none;color:var(--muted2);font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;white-space:nowrap;text-transform:uppercase;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-btn .tab-ico{display:block;font-size:16px;margin-bottom:3px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── HEADER ── */
+header{background:linear-gradient(135deg,#0D1B36 0%,#111827 100%);border-bottom:1px solid var(--border);padding:14px 20px;position:sticky;top:0;z-index:200;}
+.hdr-inner{max-width:940px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#FF8C00);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;line-height:1;}
+.logo-text span{color:var(--gold);}
+.logo-sub{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:1px;}
+.date-display{text-align:right;}
+.date-main{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;color:var(--gold2);}
+.date-sub{font-size:10px;color:var(--muted);}
+
+/* DAY NAV */
+.day-nav{max-width:940px;margin:0 auto;display:flex;gap:5px;overflow-x:auto;padding:10px 20px 0;scrollbar-width:none;}
+.day-nav::-webkit-scrollbar{display:none;}
+.day-btn{padding:6px 12px;border-radius:18px;border:1.5px solid var(--border);background:none;color:var(--muted2);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.day-btn:hover{border-color:var(--gold);color:var(--gold);}
+.day-btn.active{background:var(--gold);border-color:var(--gold);color:#000;}
+.day-btn.fri{border-color:rgba(168,85,247,.4);color:var(--purple);}
+.day-btn.fri.active{background:var(--purple);border-color:var(--purple);}
+.day-btn.has-data::after{content:'•';margin-left:3px;color:var(--green);}
+
+/* ── MAIN ── */
+.main{max-width:940px;margin:0 auto;padding:18px 20px 80px;}
+
+/* ── TODAY CARD (top of nutrition tab) ── */
+.today-banner{background:linear-gradient(135deg,#0D2245,#1a3a6b);border:1.5px solid rgba(240,165,0,.3);border-radius:var(--radius);padding:16px 20px;margin-bottom:18px;position:relative;overflow:hidden;}
+.today-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(240,165,0,.06);}
+.today-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.today-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--text);line-height:1.1;}
+.today-tip{font-size:11.5px;color:rgba(255,255,255,.6);margin-top:6px;line-height:1.5;}
+.today-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.tbadge{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:12px;}
+.tbadge-track{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3);}
+.tbadge-fri{background:rgba(168,85,247,.15);color:#C084FC;border:1px solid rgba(168,85,247,.3);}
+.tbadge-gym{background:rgba(59,130,246,.15);color:#60A5FA;border:1px solid rgba(59,130,246,.3);}
+.tbadge-rest{background:rgba(100,116,139,.15);color:var(--muted2);border:1px solid rgba(100,116,139,.3);}
+
+/* ── MACRO RINGS ── */
+.macro-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+@media(max-width:580px){.macro-bar{grid-template-columns:repeat(2,1fr);}}
+.macro-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;position:relative;overflow:hidden;transition:border-color .2s;}
+.macro-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.macro-card.cal::before{background:linear-gradient(90deg,var(--gold),var(--orange));}
+.macro-card.pro::before{background:linear-gradient(90deg,var(--blue),#60A5FA);}
+.macro-card.carb::before{background:linear-gradient(90deg,var(--green),#86EFAC);}
+.macro-card.fat::before{background:linear-gradient(90deg,var(--purple),#C084FC);}
+.macro-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.macro-val{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;line-height:1;}
+.macro-val.cal{color:var(--gold);} .macro-val.pro{color:var(--blue);} .macro-val.carb{color:var(--green);} .macro-val.fat{color:var(--purple);}
+.macro-unit{font-size:11px;color:var(--muted);margin-top:1px;}
+.macro-ring-wrap{position:relative;width:52px;height:52px;margin:7px auto 0;}
+.macro-ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:var(--surface3);stroke-width:5;}
+.ring-fill{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.34,1.56,.64,1);}
+.ring-fill.cal{stroke:var(--gold);} .ring-fill.pro{stroke:var(--blue);} .ring-fill.carb{stroke:var(--green);} .ring-fill.fat{stroke:var(--purple);}
+.ring-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:800;color:var(--text);}
+.macro-goal{font-size:9px;color:var(--muted);margin-top:3px;}
+
+/* ── HYDRATION ── */
+.hydration-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:18px;}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--text);display:flex;align-items:center;gap:7px;}
+.section-title .ico{font-size:15px;}
+.drinks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:12px;}
+.drink-btn{display:flex;align-items:center;gap:8px;padding:9px 11px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;color:var(--text);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;}
+.drink-btn:hover{transform:scale(1.03);}
+.drink-btn.water:hover{border-color:var(--teal);background:rgba(20,184,166,.12);}
+.drink-btn.bodyarmor:hover{border-color:#F97316;background:rgba(249,115,22,.12);}
+.drink-btn.diet:hover{border-color:var(--purple);background:rgba(168,85,247,.12);}
+.drink-btn.gatorade:hover{border-color:var(--green);background:rgba(34,197,94,.12);}
+.drink-btn.milk:hover{border-color:#F1F5F9;background:rgba(241,245,249,.08);}
+.drink-btn.oj:hover{border-color:var(--gold);background:rgba(240,165,0,.12);}
+.drink-btn.custom-drink:hover{border-color:var(--blue);background:rgba(59,130,246,.12);}
+.drink-ico{font-size:18px;flex-shrink:0;}
+.drink-name{font-size:11px;font-weight:800;}
+.drink-cal{font-size:10px;color:var(--muted);}
+.drink-log{display:flex;flex-wrap:wrap;gap:6px;min-height:32px;padding:7px 9px;background:var(--surface2);border-radius:var(--radius-sm);border:1px dashed var(--border);align-items:center;margin-bottom:10px;}
+.drink-log-empty{font-size:11px;color:var(--muted);font-style:italic;}
+.drink-chip{display:flex;align-items:center;gap:4px;padding:3px 9px;border-radius:18px;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .15s;animation:popIn .2s ease;}
+@keyframes popIn{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+.drink-chip:hover{opacity:.7;}
+.water-total{display:flex;align-items:center;gap:10px;}
+.water-bar-wrap{flex:1;height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;}
+.water-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal),#67E8F9);transition:width .4s ease;}
+.water-label{font-size:12px;color:var(--teal);font-weight:800;white-space:nowrap;}
+
+/* ── MEAL SECTIONS ── */
+.meals-wrap{display:flex;flex-direction:column;gap:14px;margin-bottom:18px;}
+.meal-section{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s;}
+.meal-section:focus-within{border-color:rgba(240,165,0,.4);}
+.meal-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+.meal-hdr-left{display:flex;align-items:center;gap:9px;}
+.meal-icon-wrap{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.meal-icon-wrap.breakfast{background:rgba(240,165,0,.15);} .meal-icon-wrap.snack1{background:rgba(34,197,94,.15);}
+.meal-icon-wrap.lunch{background:rgba(59,130,246,.15);} .meal-icon-wrap.snack2{background:rgba(34,197,94,.15);}
+.meal-icon-wrap.dinner{background:rgba(168,85,247,.15);} .meal-icon-wrap.evening{background:rgba(20,184,166,.15);}
+.meal-name{font-size:13px;font-weight:800;}
+.meal-cal-summary{font-size:10px;color:var(--muted);}
+.meal-total-badge{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--gold);}
+.meal-toggle{color:var(--muted);font-size:13px;margin-left:6px;transition:transform .2s;}
+.meal-toggle.open{transform:rotate(180deg);}
+.meal-body{padding:13px 16px;}
+
+/* TODAY MEAL SUGGESTION banner inside meal */
+.meal-suggestion{background:linear-gradient(135deg,rgba(13,34,69,.8),rgba(26,58,107,.6));border:1px solid rgba(240,165,0,.25);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;}
+.sug-ico{font-size:18px;flex-shrink:0;}
+.sug-body{}
+.sug-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:2px;}
+.sug-name{font-size:12px;font-weight:800;color:var(--text);margin-bottom:2px;}
+.sug-desc{font-size:10.5px;color:var(--muted2);line-height:1.4;}
+.sug-add-btn{margin-left:auto;flex-shrink:0;padding:5px 12px;background:rgba(240,165,0,.15);border:1px solid rgba(240,165,0,.3);border-radius:6px;color:var(--gold);font-size:11px;font-weight:800;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.sug-add-btn:hover{background:rgba(240,165,0,.25);}
+
+/* FOOD TABLE */
+.food-table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.food-table th{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 5px 7px;}
+.food-table th.right,.food-table td.right{text-align:right;}
+.food-row td{padding:5px;border-top:1px solid var(--border);font-size:12px;vertical-align:middle;}
+.food-name-cell{font-weight:700;color:var(--text);}
+.food-macro-cell{color:var(--muted2);font-size:11px;}
+.food-cal-cell{font-weight:800;color:var(--gold);font-size:12px;}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;transition:all .15s;}
+.del-btn:hover{background:rgba(239,68,68,.15);color:var(--red);}
+.add-food-row{display:grid;grid-template-columns:2fr 74px 64px 64px 64px 40px;gap:5px;align-items:center;}
+@media(max-width:580px){.add-food-row{grid-template-columns:1fr 1fr;}.add-food-row .add-btn{grid-column:span 2;}}
+.add-input{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;color:var(--text);font-family:'Nunito',sans-serif;font-size:12px;font-weight:600;outline:none;transition:border-color .2s;width:100%;}
+.add-input:focus{border-color:var(--gold);}
+.add-input::placeholder{color:var(--muted);}
+.add-input.num{text-align:center;}
+.add-btn{background:linear-gradient(135deg,var(--gold),var(--orange));border:none;border-radius:var(--radius-sm);padding:8px;cursor:pointer;font-size:17px;font-weight:900;color:#000;transition:opacity .15s,transform .1s;width:100%;}
+.add-btn:hover{opacity:.9;transform:scale(1.05);}
+.quick-add-wrap{margin-top:9px;}
+.quick-label{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.quick-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.quick-chip{padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:18px;font-size:10.5px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all .15s;}
+.quick-chip:hover{border-color:var(--gold);color:var(--gold);background:rgba(240,165,0,.08);}
+
+/* ── SUMMARY ── */
+.summary-card{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1.5px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;}
+.summary-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--gold2);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:480px){.summary-grid{grid-template-columns:1fr;}}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--surface3);border-radius:var(--radius-sm);}
+.s-label{font-size:11px;color:var(--muted);font-weight:700;}
+.s-val{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;}
+.s-val.cal{color:var(--gold);} .s-val.pro{color:var(--blue);} .s-val.carb{color:var(--green);} .s-val.fat{color:var(--purple);} .s-val.water{color:var(--teal);} .s-val.drinks{color:var(--orange);}
+.goal-bars{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
+.goal-row-top{display:flex;justify-content:space-between;margin-bottom:4px;}
+.goal-name{font-size:11px;font-weight:800;color:var(--text);}
+.goal-nums{font-size:11px;color:var(--muted);}
+.prog-bar{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+.prog-fill.cal{background:linear-gradient(90deg,var(--gold),var(--orange));}
+.prog-fill.pro{background:linear-gradient(90deg,var(--blue),#60A5FA);}
+.prog-fill.carb{background:linear-gradient(90deg,var(--green),#86EFAC);}
+.prog-fill.fat{background:linear-gradient(90deg,var(--purple),#C084FC);}
+.prog-fill.over{background:var(--red)!important;}
+.status-banner{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:var(--radius-sm);margin-top:12px;font-size:12px;font-weight:700;line-height:1.4;}
+.status-banner.warn{background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);color:var(--gold2);}
+.status-banner.ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:#86EFAC;}
+.status-banner.low{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#93C5FD;}
+.status-ico{font-size:16px;flex-shrink:0;}
+
+/* ── GOALS CARD ── */
+.goals-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:18px;}
+.goals-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;}
+.goals-body{padding:14px 16px;border-top:1px solid var(--border);}
+.goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:480px){.goals-grid{grid-template-columns:1fr;}}
+.goal-field label{display:block;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.goal-field input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.goal-field input:focus{border-color:var(--gold);}
+.save-goals-btn{margin-top:12px;padding:10px 20px;background:linear-gradient(135deg,var(--gold),var(--orange));border:none;border-radius:var(--radius-sm);color:#000;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .15s;}
+.save-goals-btn:hover{opacity:.9;}
+
+/* ── BUTTONS ── */
+.open-db-btn{display:block;width:100%;padding:13px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--muted2);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px;text-align:center;}
+.open-db-btn:hover{border-color:var(--gold);color:var(--gold);}
+.reset-btn{display:block;width:100%;padding:10px;background:none;border:1.5px solid rgba(239,68,68,.2);border-radius:var(--radius);color:rgba(239,68,68,.6);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.reset-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* ── FOOD DATABASE MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);justify-content:center;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.food-modal{background:var(--surface);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-width:700px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+.modal-close{background:var(--surface3);border:none;border-radius:8px;padding:7px 13px;color:var(--muted2);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;}
+.db-search-wrap{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.db-search-row{display:flex;gap:8px;}
+.db-search-input{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.db-search-input:focus{border-color:var(--gold);}
+.ai-search-btn{padding:9px 15px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:var(--radius-sm);color:white;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:opacity .15s;}
+.ai-search-btn:hover{opacity:.85;}
+.ai-search-btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ico{font-size:14px;}
+.ai-results-panel{margin-top:10px;display:none;}
+.ai-status{font-size:11px;font-weight:800;color:#818CF8;margin-bottom:8px;}
+.ai-result-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:border-color .15s;gap:10px;}
+.ai-result-item:hover{border-color:var(--blue);}
+.ai-res-name{font-size:13px;font-weight:700;}
+.ai-res-macros{font-size:11px;color:var(--muted2);margin-top:2px;}
+.ai-res-cal{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);white-space:nowrap;}
+.food-db-add{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--green);font-size:16px;font-weight:900;cursor:pointer;transition:background .15s;}
+.food-db-add:hover{background:rgba(34,197,94,.15);}
+.cat-tabs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1px solid var(--border);}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{padding:5px 13px;border-radius:18px;border:1.5px solid var(--border);background:none;color:var(--muted2);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.cat-tab:hover{border-color:var(--gold);color:var(--gold);}
+.cat-tab.active{background:var(--gold);border-color:var(--gold);color:#000;}
+.food-list-wrap{overflow-y:auto;flex:1;padding:8px 16px;}
+.food-db-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:var(--radius-sm);margin-bottom:5px;cursor:pointer;transition:background .15s;gap:10px;}
+.food-db-item:hover{background:var(--surface2);}
+.fdi-name{font-size:13px;font-weight:700;}
+.fdi-macros{font-size:11px;color:var(--muted2);margin-top:2px;}
+.fdi-cal{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);}
+.no-results{font-size:13px;color:var(--muted);text-align:center;padding:20px;}
+.meal-select-row{display:flex;align-items:center;gap:6px;padding:10px 16px;border-top:1px solid var(--border);flex-wrap:wrap;flex-shrink:0;}
+.meal-sel-btn{padding:6px 11px;background:var(--surface2);border:1.5px solid var(--border);border-radius:18px;color:var(--muted2);font-family:'Nunito',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.meal-sel-btn.selected{background:var(--gold);border-color:var(--gold);color:#000;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:10px 20px;font-size:13px;font-weight:700;color:var(--text);opacity:0;transition:all .3s;z-index:3000;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ──────────────────────────────────
+   TRAINING TAB
+────────────────────────────────── */
+.training-tab{padding:18px 20px 80px;max-width:940px;margin:0 auto;}
+.workout-header{background:linear-gradient(135deg,#0D2245,#1a3a6b);border:1.5px solid rgba(59,130,246,.3);border-radius:var(--radius);padding:16px 20px;margin-bottom:18px;}
+.wh-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#60A5FA;margin-bottom:4px;}
+.wh-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--text);}
+.wh-sub{font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;}
+.workout-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden;}
+.wc-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;cursor:pointer;user-select:none;}
+.wc-hdr-left{display:flex;align-items:center;gap:10px;}
+.wc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.wc-icon.track{background:rgba(34,197,94,.15);}
+.wc-icon.gym{background:rgba(59,130,246,.15);}
+.wc-icon.home{background:rgba(240,165,0,.15);}
+.wc-icon.plyo{background:rgba(249,115,22,.15);}
+.wc-icon.recovery{background:rgba(20,184,166,.15);}
+.wc-icon.rest{background:rgba(100,116,139,.15);}
+.wc-title{font-size:14px;font-weight:800;}
+.wc-sub{font-size:11px;color:var(--muted);}
+.wc-badge{font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:12px;text-transform:uppercase;}
+.wc-badge.track-b{background:rgba(34,197,94,.15);color:var(--green);}
+.wc-badge.gym-b{background:rgba(59,130,246,.15);color:#60A5FA;}
+.wc-badge.home-b{background:rgba(240,165,0,.15);color:var(--gold);}
+.wc-badge.plyo-b{background:rgba(249,115,22,.15);color:var(--orange);}
+.wc-badge.rest-b{background:rgba(100,116,139,.15);color:var(--muted2);}
+.wc-body{padding:14px 16px;border-top:1px solid var(--border);display:none;}
+.wc-body.open{display:block;}
+.wc-chevron{font-size:14px;color:var(--muted);transition:transform .2s;}
+.wc-chevron.open{transform:rotate(180deg);}
+.exercise-table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.exercise-table th{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 8px 8px;}
+.exercise-table td{padding:8px;border-top:1px solid var(--border);font-size:12px;vertical-align:top;}
+.ex-name{font-weight:800;color:var(--text);margin-bottom:2px;}
+.ex-note{font-size:10.5px;color:var(--muted2);line-height:1.4;}
+.ex-sets{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--blue);white-space:nowrap;}
+.ex-reps{font-size:12px;color:var(--muted2);}
+.ex-rest{font-size:11px;color:var(--teal);}
+.workout-tip{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(59,130,246,.04));border:1px solid rgba(59,130,246,.2);border-radius:var(--radius-sm);padding:10px 13px;font-size:11.5px;color:#93C5FD;line-height:1.5;margin-bottom:10px;}
+.workout-tip strong{color:#BFDBFE;}
+.schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:18px;}
+@media(max-width:600px){.schedule-grid{grid-template-columns:repeat(4,1fr);}}
+.sched-cell{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 6px;text-align:center;cursor:pointer;transition:all .2s;}
+.sched-cell:hover{border-color:var(--gold);}
+.sched-cell.today-cell{border-color:var(--gold);background:rgba(240,165,0,.1);}
+.sched-day{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.sched-ico{font-size:18px;margin-bottom:2px;}
+.sched-label{font-size:9px;color:var(--muted2);font-weight:700;}
+.principles-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+.principles-card h3{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--gold2);margin-bottom:12px;}
+.principle-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.5;color:var(--muted2);}
+.principle-item:last-child{border-bottom:none;}
+.principle-item::before{content:'→';color:var(--gold);font-weight:800;flex-shrink:0;}
+.timeline-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+.timeline-card h3{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--gold2);margin-bottom:14px;}
+.timeline-items{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:500px){.timeline-items{grid-template-columns:repeat(2,1fr);}}
+.tl-item{background:var(--surface2);border-radius:var(--radius-sm);padding:12px;border:1.5px solid var(--border);}
+.tl-week{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold);margin-bottom:4px;}
+.tl-focus{font-size:11px;font-weight:800;color:var(--text);margin-bottom:3px;}
+.tl-goal{font-size:10.5px;color:var(--muted2);line-height:1.4;}
+
+/* ── MEAL PLAN TAB ── */
+.mealplan-tab{padding:18px 20px 80px;max-width:940px;margin:0 auto;}
+.mp-week-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:3px;color:var(--muted);margin:18px 0 10px;display:flex;align-items:center;gap:10px;}
+.mp-week-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.mp-day-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.mp-day-card.friday{border-color:rgba(168,85,247,.4);}
+.mp-day-card.weekend{border-color:rgba(59,130,246,.3);}
+.mp-day-hdr{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;user-select:none;}
+.mp-day-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;}
+.mp-day-date{font-size:11px;color:var(--muted);}
+.mp-badge{font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:12px;text-transform:uppercase;}
+.mp-badge.fri-b{background:rgba(168,85,247,.15);color:#C084FC;}
+.mp-badge.wknd-b{background:rgba(59,130,246,.15);color:#60A5FA;}
+.mp-body{padding:14px 16px;border-top:1px solid var(--border);display:none;}
+.mp-body.open{display:block;}
+.mp-meals-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;}
+@media(max-width:600px){.mp-meals-grid{grid-template-columns:1fr;}}
+.mp-meal-col{}
+.mp-meal-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.mp-meal-item{background:var(--surface2);border-radius:var(--radius-sm);padding:10px;border:1.5px solid var(--border);margin-bottom:6px;}
+.mp-meal-item.go{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.05);}
+.mp-meal-item.avoid{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05);opacity:.8;}
+.mp-meal-item.pack{border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.05);}
+.mp-meal-item.fri-ok{border-color:rgba(20,184,166,.3);background:rgba(20,184,166,.05);}
+.mp-item-name{font-size:12px;font-weight:800;color:var(--text);margin-bottom:3px;}
+.mp-item-name.strike{text-decoration:line-through;color:var(--red);}
+.mp-item-desc{font-size:10.5px;color:var(--muted2);line-height:1.4;}
+.mp-item-price{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--gold);}
+.mp-tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin-right:4px;margin-bottom:4px;}
+.mp-tag.go{background:rgba(34,197,94,.15);color:var(--green);}
+.mp-tag.best{background:rgba(34,197,94,.2);color:#86EFAC;}
+.mp-tag.val{background:rgba(240,165,0,.15);color:var(--gold);}
+.mp-tag.avoid{background:rgba(239,68,68,.15);color:#FCA5A5;}
+.mp-tag.pack{background:rgba(168,85,247,.15);color:#C084FC;}
+.mp-tag.fri{background:rgba(20,184,166,.15);color:var(--teal);}
+.mp-snacks{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--border);}
+@media(max-width:480px){.mp-snacks{grid-template-columns:1fr;}}
+.mp-snack{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:var(--radius-sm);}
+.mp-snack.fruit{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);}
+.mp-snack.organic{background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.2);}
+.mp-snack-ico{font-size:15px;flex-shrink:0;}
+.mp-snack-label{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--green);margin-bottom:2px;}
+.mp-snack-label.org{color:var(--orange);}
+.mp-snack-name{font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.mp-snack-desc{font-size:10px;color:var(--muted2);line-height:1.4;}
+.mp-tip{padding:10px 14px;background:linear-gradient(135deg,rgba(13,34,69,.6),rgba(26,58,107,.4));border-top:1px solid var(--border);font-size:11px;color:var(--muted2);line-height:1.5;}
+.mp-tip strong{color:var(--text);}
+.use-plan-btn{display:block;width:100%;padding:9px;background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.3);border-radius:var(--radius-sm);color:var(--gold);font-family:'Nunito',sans-serif;font-size:11px;font-weight:800;cursor:pointer;margin-top:8px;transition:all .15s;text-align:center;}
+.use-plan-btn:hover{background:rgba(240,165,0,.2);}
+
+/* ── RECOVERY TAB ── */
+.recovery-tab{padding:18px 20px 80px;max-width:940px;margin:0 auto;}
+.checklist-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+.checklist-card h3{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--gold2);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.check-item:last-child{border-bottom:none;}
+.check-item:hover{background:rgba(255,255,255,.02);border-radius:8px;}
+.check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px;}
+.check-box.checked{background:var(--green);border-color:var(--green);}
+.check-box.checked::after{content:'✓';color:#000;font-size:12px;font-weight:900;}
+.check-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.check-desc{font-size:11px;color:var(--muted2);line-height:1.4;}
+.recovery-score{background:linear-gradient(135deg,#0D2245,#1a3a6b);border:1.5px solid rgba(34,197,94,.3);border-radius:var(--radius);padding:20px;margin-bottom:14px;text-align:center;}
+.rs-label{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:6px;}
+.rs-score{font-family:'Bebas Neue',sans-serif;font-size:72px;letter-spacing:2px;color:var(--green);line-height:1;}
+.rs-max{font-size:14px;color:var(--muted);margin-top:4px;}
+.rs-bar{height:8px;background:var(--surface3);border-radius:4px;margin:12px 0;}
+.rs-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),#86EFAC);transition:width .5s ease;}
+.rs-msg{font-size:12px;color:var(--muted2);line-height:1.5;}
+.nutrition-rules{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+.nutrition-rules h3{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:var(--gold2);margin-bottom:12px;}
+.rule-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted2);line-height:1.5;}
+.rule-item:last-child{border-bottom:none;}
+.rule-ico{font-size:14px;flex-shrink:0;}
+
+/* ── TOP AI BAR ── */
+.top-ai-bar{background:linear-gradient(135deg,rgba(79,70,229,.12),rgba(124,58,237,.08));border:1.5px solid rgba(124,58,237,.3);border-radius:var(--radius);padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.top-ai-bar .ai-bar-ico{font-size:20px;flex-shrink:0;}
+.top-ai-bar .ai-bar-input{flex:1;background:var(--surface2);border:1.5px solid rgba(124,58,237,.3);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-family:'Nunito',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+.top-ai-bar .ai-bar-input:focus{border-color:#818CF8;}
+.top-ai-bar .ai-bar-input::placeholder{color:var(--muted);}
+.top-ai-bar-btns{display:flex;gap:7px;flex-shrink:0;}
+.top-ai-btn{padding:9px 13px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:var(--radius-sm);color:white;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:5px;transition:opacity .15s;white-space:nowrap;}
+.top-ai-btn:hover{opacity:.85;}
+.top-ai-btn:disabled{opacity:.5;cursor:not-allowed;}
+.top-ai-cam-btn{padding:9px 12px;background:linear-gradient(135deg,#0D9488,#0891B2);border:none;border-radius:var(--radius-sm);color:white;font-family:'Nunito',sans-serif;font-size:18px;cursor:pointer;transition:opacity .15s;flex-shrink:0;}
+.top-ai-cam-btn:hover{opacity:.85;}
+.top-ai-results{margin-top:10px;display:none;}
+.top-ai-results.show{display:block;}
+
+/* ── CAMERA ANALYZER MODAL ── */
+.cam-overlay{display:none;position:fixed;inset:0;z-index:2500;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);justify-content:center;align-items:flex-end;}
+.cam-overlay.open{display:flex;}
+.cam-modal{background:var(--surface);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-width:700px;max-height:92vh;display:flex;flex-direction:column;animation:slideUp .3s ease;overflow:hidden;}
+.cam-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.cam-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;display:flex;align-items:center;gap:8px;}
+.cam-title-ico{background:linear-gradient(135deg,#0D9488,#0891B2);width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.cam-body{flex:1;overflow-y:auto;padding:18px 20px;}
+.cam-upload-zone{border:2px dashed rgba(13,148,136,.4);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:rgba(13,148,136,.04);margin-bottom:16px;}
+.cam-upload-zone:hover{border-color:var(--teal);background:rgba(13,148,136,.08);}
+.cam-upload-zone.has-image{padding:12px;border-color:var(--teal);}
+.cam-upload-ico{font-size:42px;margin-bottom:10px;}
+.cam-upload-label{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.cam-upload-sub{font-size:11px;color:var(--muted);}
+.cam-upload-btn-row{display:flex;gap:10px;justify-content:center;margin-top:12px;}
+.cam-file-btn{padding:10px 18px;background:linear-gradient(135deg,#0D9488,#0891B2);border:none;border-radius:var(--radius-sm);color:white;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.cam-file-btn:hover{opacity:.9;}
+#camFileInput{display:none;}
+.cam-preview-img{width:100%;max-height:260px;object-fit:contain;border-radius:var(--radius-sm);display:block;}
+.cam-analyze-btn{width:100%;padding:13px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;border-radius:var(--radius-sm);color:white;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s;margin-bottom:14px;}
+.cam-analyze-btn:hover{opacity:.9;}
+.cam-analyze-btn:disabled{opacity:.5;cursor:not-allowed;}
+.cam-results{display:none;}
+.cam-results.show{display:block;}
+.cam-result-food{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.cam-result-food:hover{border-color:var(--teal);}
+.cam-result-name{font-size:13px;font-weight:800;}
+.cam-result-macros{font-size:11px;color:var(--muted2);margin-top:3px;}
+.cam-result-cal{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--teal);}
+.cam-result-add{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:5px 11px;color:var(--teal);font-size:15px;font-weight:900;cursor:pointer;}
+.cam-result-add:hover{background:rgba(20,184,166,.15);}
+.cam-meal-sel{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;}
+.cam-meal-sel-label{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.cam-status{font-size:12px;color:#818CF8;font-weight:800;padding:8px 0;}
+
+/* ── INSTALL BANNER ── */
+.install-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#0D2245,#1a3a6b);border-bottom:2px solid var(--gold);padding:12px 18px;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(0,0,0,.5);}
+.install-ico{font-size:26px;flex-shrink:0;}
+.install-text{flex:1;}
+.install-title{font-size:13px;font-weight:800;color:var(--gold2);line-height:1.2;}
+.install-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px;}
+.install-cta{padding:7px 15px;background:linear-gradient(135deg,var(--gold),var(--orange));border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-size:12px;font-weight:800;color:#000;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.install-dismiss{background:none;border:1.5px solid rgba(255,255,255,.2);border-radius:8px;padding:5px 9px;color:rgba(255,255,255,.4);cursor:pointer;font-size:11px;font-weight:700;flex-shrink:0;}
+.offline-pill{display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#374151;border:1px solid #4B5563;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:#9CA3AF;z-index:800;}
+body.offline .offline-pill{display:block;}
+body.is-pwa header{padding-top:max(14px,env(safe-area-inset-top));}
+body.is-pwa .main,.training-tab,.mealplan-tab,.recovery-tab{padding-bottom:max(80px,env(safe-area-inset-bottom));}
+</style>
+</head>
+<body>
+
+<!-- CAMERA CALORIE ANALYZER MODAL -->
+<div class="cam-overlay" id="camModal" onclick="handleCamOverlayClick(event)">
+  <div class="cam-modal">
+    <div class="cam-hdr">
+      <div class="cam-title"><div class="cam-title-ico">📷</div> AI CALORIE ANALYZER</div>
+      <button class="modal-close" onclick="closeCamModal()">✕ Close</button>
+    </div>
+    <div class="cam-body">
+      <div class="cam-upload-zone" id="camUploadZone" onclick="document.getElementById('camFileInput').click()">
+        <div id="camPreviewWrap">
+          <div class="cam-upload-ico">📸</div>
+          <div class="cam-upload-label">Take a photo of your food</div>
+          <div class="cam-upload-sub">Snap a pic and AI will estimate calories & macros</div>
+          <div class="cam-upload-btn-row">
+            <label class="cam-file-btn" for="camFileInput" onclick="event.stopPropagation()">📷 Camera / Photo Library</label>
+          </div>
+        </div>
+        <img id="camPreviewImg" class="cam-preview-img" style="display:none;" alt="Food preview"/>
+      </div>
+      <input type="file" id="camFileInput" accept="image/*" capture="environment" onchange="handleCamFile(event)"/>
+      <div id="camChangeBtnWrap" style="display:none;margin-bottom:12px;">
+        <button onclick="clearCamImage()" style="background:none;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:7px 14px;color:var(--muted2);font-family:'Nunito',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">🔄 Change Photo</button>
+      </div>
+      <div class="cam-meal-sel">
+        <span class="cam-meal-sel-label">Add to:</span>
+        <button class="meal-sel-btn selected" data-meal="breakfast" onclick="selectCamMeal(this)">🌅 Breakfast</button>
+        <button class="meal-sel-btn" data-meal="snack1" onclick="selectCamMeal(this)">🍎 Snack 1</button>
+        <button class="meal-sel-btn" data-meal="lunch" onclick="selectCamMeal(this)">🥗 Lunch</button>
+        <button class="meal-sel-btn" data-meal="snack2" onclick="selectCamMeal(this)">⚡ Snack 2</button>
+        <button class="meal-sel-btn" data-meal="dinner" onclick="selectCamMeal(this)">🍽 Dinner</button>
+        <button class="meal-sel-btn" data-meal="evening" onclick="selectCamMeal(this)">🌙 Evening</button>
+      </div>
+      <button class="cam-analyze-btn" id="camAnalyzeBtn" onclick="analyzeImage()" disabled>
+        <span id="camAnalyzeBtnTxt">✨ Analyze Food & Get Calories</span>
+      </button>
+      <div class="cam-results" id="camResults">
+        <div class="cam-status" id="camStatus"></div>
+        <div id="camResultsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <span class="install-ico">⚡</span>
+  <div class="install-text">
+    <div class="install-title">Install Sprint Fuel — Works Offline</div>
+    <div class="install-sub">Add to home screen · No app store needed</div>
+  </div>
+  <button class="install-cta" id="installBtn">Install</button>
+  <button class="install-dismiss" id="dismissInstall">✕</button>
+</div>
+<div class="offline-pill">📡 Offline — data still saved</div>
+
+<!-- HEADER -->
+<header>
+  <div class="hdr-inner">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">SPRINT <span>FUEL</span></div>
+        <div class="logo-sub">BISHOP McDEVITT · SPRINT SEASON</div>
+      </div>
+    </div>
+    <div class="date-display">
+      <div class="date-main" id="headerDate"></div>
+      <div class="date-sub" id="headerSub">Track Practice 3–4:30PM</div>
+    </div>
+  </div>
+  <div class="day-nav" id="dayNav"></div>
+</header>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('nutrition',this)"><span class="tab-ico">🍽</span>NUTRITION</button>
+  <button class="tab-btn" onclick="switchTab('training',this)"><span class="tab-ico">🏃</span>TRAINING</button>
+  <button class="tab-btn" onclick="switchTab('mealplan',this)"><span class="tab-ico">📅</span>MEAL PLAN</button>
+  <button class="tab-btn" onclick="switchTab('recovery',this)"><span class="tab-ico">💤</span>RECOVERY</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     NUTRITION TAB
+══════════════════════════════════════════ -->
+<div class="tab-content active" id="tab-nutrition">
+<div class="main">
+
+  <!-- TODAY BANNER -->
+  <div class="today-banner" id="todayBanner">
+    <div class="today-label">TODAY'S PLAN</div>
+    <div class="today-name" id="todayName">Loading…</div>
+    <div class="today-tip" id="todayTip"></div>
+    <div class="today-badges" id="todayBadges"></div>
+  </div>
+
+  <!-- TOP AI SEARCH + CAMERA -->
+  <div class="top-ai-bar">
+    <span class="ai-bar-ico">✨</span>
+    <input class="ai-bar-input" id="topAiInput" placeholder="Search any food for instant nutrition info…" onkeydown="if(event.key==='Enter')topAiSearch()"/>
+    <div class="top-ai-bar-btns">
+      <button class="top-ai-btn" id="topAiBtn" onclick="topAiSearch()">AI Search</button>
+      <button class="top-ai-cam-btn" onclick="openCamModal()" title="AI Camera Analyzer">📷</button>
+    </div>
+  </div>
+  <div class="top-ai-results" id="topAiResults"></div>
+  <div class="macro-bar">
+    <div class="macro-card cal">
+      <div class="macro-label">Calories</div>
+      <div class="macro-val cal" id="totalCal">0</div>
+      <div class="macro-unit">kcal</div>
+      <div class="macro-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fill cal" id="ringCal" cx="26" cy="26" r="21" stroke-dasharray="132" stroke-dashoffset="132"/></svg>
+        <div class="ring-pct" id="pctCal">0%</div>
+      </div>
+      <div class="macro-goal" id="goalCalLabel">Goal: 3200</div>
+    </div>
+    <div class="macro-card pro">
+      <div class="macro-label">Protein</div>
+      <div class="macro-val pro" id="totalPro">0</div>
+      <div class="macro-unit">grams</div>
+      <div class="macro-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fill pro" id="ringPro" cx="26" cy="26" r="21" stroke-dasharray="132" stroke-dashoffset="132"/></svg>
+        <div class="ring-pct" id="pctPro">0%</div>
+      </div>
+      <div class="macro-goal" id="goalProLabel">Goal: 160g</div>
+    </div>
+    <div class="macro-card carb">
+      <div class="macro-label">Carbs</div>
+      <div class="macro-val carb" id="totalCarb">0</div>
+      <div class="macro-unit">grams</div>
+      <div class="macro-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fill carb" id="ringCarb" cx="26" cy="26" r="21" stroke-dasharray="132" stroke-dashoffset="132"/></svg>
+        <div class="ring-pct" id="pctCarb">0%</div>
+      </div>
+      <div class="macro-goal" id="goalCarbLabel">Goal: 400g</div>
+    </div>
+    <div class="macro-card fat">
+      <div class="macro-label">Fat</div>
+      <div class="macro-val fat" id="totalFat">0</div>
+      <div class="macro-unit">grams</div>
+      <div class="macro-ring-wrap">
+        <svg width="52" height="52" viewBox="0 0 52 52"><circle class="ring-bg" cx="26" cy="26" r="21"/><circle class="ring-fill fat" id="ringFat" cx="26" cy="26" r="21" stroke-dasharray="132" stroke-dashoffset="132"/></svg>
+        <div class="ring-pct" id="pctFat">0%</div>
+      </div>
+      <div class="macro-goal" id="goalFatLabel">Goal: 90g</div>
+    </div>
+  </div>
+
+  <!-- HYDRATION -->
+  <div class="hydration-card">
+    <div class="section-hdr">
+      <div class="section-title"><span class="ico">💧</span> DRINKS & HYDRATION</div>
+    </div>
+    <div class="drinks-grid">
+      <button class="drink-btn water" onclick="addDrink('water')"><span class="drink-ico">💧</span><div class="drink-info"><div class="drink-name">Water</div><div class="drink-cal">0 cal · 8oz</div></div></button>
+      <button class="drink-btn bodyarmor" onclick="addDrink('bodyarmor')"><span class="drink-ico">🏆</span><div class="drink-info"><div class="drink-name">Body Armor</div><div class="drink-cal">90 cal · 16oz</div></div></button>
+      <button class="drink-btn gatorade" onclick="addDrink('gatorade')"><span class="drink-ico">⚡</span><div class="drink-info"><div class="drink-name">Gatorade</div><div class="drink-cal">80 cal · 12oz</div></div></button>
+      <button class="drink-btn diet" onclick="addDrink('diet')"><span class="drink-ico">🥤</span><div class="drink-info"><div class="drink-name">Diet Drink</div><div class="drink-cal">0–5 cal · 12oz</div></div></button>
+      <button class="drink-btn milk" onclick="addDrink('milk')"><span class="drink-ico">🥛</span><div class="drink-info"><div class="drink-name">Milk</div><div class="drink-cal">120 cal · 8oz</div></div></button>
+      <button class="drink-btn oj" onclick="addDrink('oj')"><span class="drink-ico">🍊</span><div class="drink-info"><div class="drink-name">OJ</div><div class="drink-cal">110 cal · 8oz</div></div></button>
+      <button class="drink-btn custom-drink" onclick="addCustomDrink()"><span class="drink-ico">➕</span><div class="drink-info"><div class="drink-name">Custom</div><div class="drink-cal">Add your own</div></div></button>
+    </div>
+    <div class="drink-log" id="drinkLog"><span class="drink-log-empty">Tap a drink to log it · click chips to remove</span></div>
+    <div class="water-total">
+      <span style="font-size:12px;color:var(--teal);font-weight:800;">💧 Water</span>
+      <div class="water-bar-wrap"><div class="water-bar-fill" id="waterBar" style="width:0%"></div></div>
+      <span class="water-label" id="waterLabel">0 / 100oz</span>
+    </div>
+  </div>
+
+  <!-- MEALS -->
+  <div class="meals-wrap">
+
+    <!-- BREAKFAST -->
+    <div class="meal-section" id="sec-breakfast">
+      <div class="meal-hdr" onclick="toggleMeal('breakfast')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap breakfast">🌅</div>
+          <div><div class="meal-name">Breakfast</div><div class="meal-cal-summary" id="sum-breakfast">0 items · 0 cal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span class="meal-total-badge" id="badge-breakfast">0</span>
+          <span class="meal-toggle open" id="tog-breakfast">▾</span>
+        </div>
+      </div>
+      <div class="meal-body" id="body-breakfast">
+        <div class="meal-suggestion" id="sug-breakfast" style="display:none"></div>
+        <table class="food-table"><thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead><tbody id="rows-breakfast"></tbody></table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-breakfast" placeholder="Food name" onkeydown="enterAdd(event,'breakfast')"/>
+          <input class="add-input num" id="cal-breakfast" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-breakfast" placeholder="Pro" type="number" min="0"/>
+          <input class="add-input num" id="carb-breakfast" placeholder="Carb" type="number" min="0"/>
+          <input class="add-input num" id="fat-breakfast" placeholder="Fat" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('breakfast')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('breakfast','Oatmeal (1 cup)',150,5,27,3)">Oatmeal</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Scrambled Eggs (3)',210,18,2,14)">Eggs ×3</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Banana',105,1,27,0)">Banana</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Whole Grain Toast',80,3,15,1)">Toast</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Greek Yogurt (plain)',100,17,6,0)">Greek Yogurt</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Almond Butter (1 tbsp)',98,3,3,9)">Almond Butter</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Protein Powder (1 scoop)',120,25,3,2)">Protein Powder</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Avocado (½)',120,1,6,11)">Avocado ½</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Orange Juice (1 cup)',110,2,26,0)">OJ</span>
+            <span class="quick-chip" onclick="quickAdd('breakfast','Chia Seeds (1 tbsp)',58,2,5,4)">Chia Seeds</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SNACK 1 -->
+    <div class="meal-section" id="sec-snack1">
+      <div class="meal-hdr" onclick="toggleMeal('snack1')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap snack1">🍎</div>
+          <div><div class="meal-name">Morning Snack</div><div class="meal-cal-summary" id="sum-snack1">0 items · 0 cal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;"><span class="meal-total-badge" id="badge-snack1">0</span><span class="meal-toggle" id="tog-snack1">▾</span></div>
+      </div>
+      <div class="meal-body" id="body-snack1" style="display:none">
+        <div class="meal-suggestion" id="sug-snack1" style="display:none"></div>
+        <table class="food-table"><thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead><tbody id="rows-snack1"></tbody></table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-snack1" placeholder="Snack name" onkeydown="enterAdd(event,'snack1')"/>
+          <input class="add-input num" id="cal-snack1" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-snack1" placeholder="Pro" type="number" min="0"/>
+          <input class="add-input num" id="carb-snack1" placeholder="Carb" type="number" min="0"/>
+          <input class="add-input num" id="fat-snack1" placeholder="Fat" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('snack1')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('snack1','Apple',95,0,25,0)">Apple</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Orange',62,1,15,0)">Orange</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Grapes (1 cup)',104,1,27,0)">Grapes</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Almonds (1 oz)',164,6,6,14)">Almonds</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','String Cheese',80,7,1,5)">String Cheese</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Organic Fruit Snack Pouch',50,0,13,0)">Fruit Pouch</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Greek Yogurt (plain)',100,17,6,0)">Greek Yogurt</span>
+            <span class="quick-chip" onclick="quickAdd('snack1','Peanut Butter (1 tbsp)',94,4,3,8)">PB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LUNCH -->
+    <div class="meal-section" id="sec-lunch">
+      <div class="meal-hdr" onclick="toggleMeal('lunch')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap lunch">🥗</div>
+          <div><div class="meal-name">Lunch</div><div class="meal-cal-summary" id="sum-lunch">0 items · 0 cal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;"><span class="meal-total-badge" id="badge-lunch">0</span><span class="meal-toggle" id="tog-lunch">▾</span></div>
+      </div>
+      <div class="meal-body" id="body-lunch" style="display:none">
+        <div class="meal-suggestion" id="sug-lunch" style="display:none"></div>
+        <table class="food-table"><thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead><tbody id="rows-lunch"></tbody></table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-lunch" placeholder="Food name" onkeydown="enterAdd(event,'lunch')"/>
+          <input class="add-input num" id="cal-lunch" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-lunch" placeholder="Pro" type="number" min="0"/>
+          <input class="add-input num" id="carb-lunch" placeholder="Carb" type="number" min="0"/>
+          <input class="add-input num" id="fat-lunch" placeholder="Fat" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('lunch')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">McDevitt Cafeteria</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('lunch','Chicken Caesar Value Meal',380,32,18,16)">🥗 Caesar $5</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Asian Rice Bowl',420,22,68,8)">🍚 Rice Bowl</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Taco Bar (Chicken)',450,28,52,12)">🌮 Taco Bar</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Garden Salad + Egg/Feta',180,10,12,9)">🥗 Garden Salad</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Grilled Chicken Breast (4oz)',165,31,0,4)">Chicken</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Brown Rice (1 cup)',216,5,45,2)">Brown Rice</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Tuna Sandwich (whole grain)',320,28,30,8)">Tuna Sandwich</span>
+            <span class="quick-chip" onclick="quickAdd('lunch','Black Bean Taco (2)',280,14,42,7)">Black Bean Tacos</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SNACK 2 / PRE-PRACTICE -->
+    <div class="meal-section" id="sec-snack2">
+      <div class="meal-hdr" onclick="toggleMeal('snack2')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap snack2">⚡</div>
+          <div><div class="meal-name">Pre-Practice Snack <span style="font-size:10px;color:var(--muted);font-weight:600;">(2:30PM)</span></div><div class="meal-cal-summary" id="sum-snack2">0 items · 0 cal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;"><span class="meal-total-badge" id="badge-snack2">0</span><span class="meal-toggle" id="tog-snack2">▾</span></div>
+      </div>
+      <div class="meal-body" id="body-snack2" style="display:none">
+        <div class="meal-suggestion" id="sug-snack2" style="display:none"></div>
+        <table class="food-table"><thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead><tbody id="rows-snack2"></tbody></table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-snack2" placeholder="Pre-practice snack" onkeydown="enterAdd(event,'snack2')"/>
+          <input class="add-input num" id="cal-snack2" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-snack2" placeholder="Pro" type="number" min="0"/>
+          <input class="add-input num" id="carb-snack2" placeholder="Carb" type="number" min="0"/>
+          <input class="add-input num" id="fat-snack2" placeholder="Fat" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('snack2')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Pre-Practice Fuel (30–45 min before)</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('snack2','Banana',105,1,27,0)">Banana 🍌</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Rice Cake',35,1,7,0)">Rice Cake</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Apple',95,0,25,0)">Apple</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Organic Fruit Snack Pouch',50,0,13,0)">Fruit Pouch</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Peanut Butter (1 tbsp)',94,4,3,8)">PB</span>
+            <span class="quick-chip" onclick="quickAdd('snack2','Gatorade (12oz)',80,0,21,0)">Gatorade ⚡</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DINNER -->
+    <div class="meal-section" id="sec-dinner">
+      <div class="meal-hdr" onclick="toggleMeal('dinner')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap dinner">🍽</div>
+          <div><div class="meal-name">Dinner</div><div class="meal-cal-summary" id="sum-dinner">0 items · 0 cal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;"><span class="meal-total-badge" id="badge-dinner">0</span><span class="meal-toggle" id="tog-dinner">▾</span></div>
+      </div>
+      <div class="meal-body" id="body-dinner" style="display:none">
+        <div class="meal-suggestion" id="sug-dinner" style="display:none"></div>
+        <table class="food-table"><thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead><tbody id="rows-dinner"></tbody></table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-dinner" placeholder="Food name" onkeydown="enterAdd(event,'dinner')"/>
+          <input class="add-input num" id="cal-dinner" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-dinner" placeholder="Pro" type="number" min="0"/>
+          <input class="add-input num" id="carb-dinner" placeholder="Carb" type="number" min="0"/>
+          <input class="add-input num" id="fat-dinner" placeholder="Fat" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('dinner')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Quick Add</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('dinner','Salmon Fillet (6oz)',354,48,0,17)">Salmon 🐟</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Chicken Breast (6oz)',280,52,0,6)">Chicken Breast</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Chicken Thigh (skinless)',209,26,0,11)">Chicken Thigh</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Tilapia (6oz)',218,45,0,4)">Tilapia</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Turkey Breast (4oz)',120,28,0,1)">Turkey</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Brown Rice (1 cup)',216,5,45,2)">Brown Rice</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Sweet Potato (medium)',103,2,24,0)">Sweet Potato</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Broccoli (1 cup)',55,4,11,1)">Broccoli</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Asparagus (1 cup)',27,3,5,0)">Asparagus</span>
+            <span class="quick-chip" onclick="quickAdd('dinner','Olive Oil (1 tbsp)',119,0,0,14)">Olive Oil</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENING / POST-PRACTICE -->
+    <div class="meal-section" id="sec-evening">
+      <div class="meal-hdr" onclick="toggleMeal('evening')">
+        <div class="meal-hdr-left">
+          <div class="meal-icon-wrap evening">🌙</div>
+          <div><div class="meal-name">Post-Practice / Evening Snack</div><div class="meal-cal-summary" id="sum-evening">0 items · 0 cal</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;"><span class="meal-total-badge" id="badge-evening">0</span><span class="meal-toggle" id="tog-evening">▾</span></div>
+      </div>
+      <div class="meal-body" id="body-evening" style="display:none">
+        <div class="meal-suggestion" id="sug-evening" style="display:none"></div>
+        <table class="food-table"><thead><tr><th style="width:40%">Food</th><th class="right">Cal</th><th class="right">Pro</th><th class="right">Carb</th><th class="right">Fat</th><th></th></tr></thead><tbody id="rows-evening"></tbody></table>
+        <div class="add-food-row">
+          <input class="add-input" id="fi-evening" placeholder="Evening snack" onkeydown="enterAdd(event,'evening')"/>
+          <input class="add-input num" id="cal-evening" placeholder="Cal" type="number" min="0"/>
+          <input class="add-input num" id="pro-evening" placeholder="Pro" type="number" min="0"/>
+          <input class="add-input num" id="carb-evening" placeholder="Carb" type="number" min="0"/>
+          <input class="add-input num" id="fat-evening" placeholder="Fat" type="number" min="0"/>
+          <button class="add-btn" onclick="addFood('evening')">+</button>
+        </div>
+        <div class="quick-add-wrap">
+          <div class="quick-label">Post-Practice Recovery (within 30 min)</div>
+          <div class="quick-chips">
+            <span class="quick-chip" onclick="quickAdd('evening','Protein Shake (25g)',130,25,5,2)">Protein Shake 💪</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Greek Yogurt (plain)',100,17,6,0)">Greek Yogurt</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Mixed Berries (½ cup)',42,1,10,0)">Berries</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Almonds (1 oz)',164,6,6,14)">Almonds</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Peanut Butter (1 tbsp)',94,4,3,8)">PB</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Dark Chocolate (2 sq)',100,1,12,6)">Dark Choc 🍫</span>
+            <span class="quick-chip" onclick="quickAdd('evening','Banana',105,1,27,0)">Banana</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GOALS EDITOR -->
+  <div class="goals-card">
+    <div class="goals-hdr" onclick="toggleGoals()">
+      <div class="section-title"><span class="ico">🎯</span> DAILY GOALS</div>
+      <span class="meal-toggle" id="tog-goals">▾</span>
+    </div>
+    <div class="goals-body" id="body-goals" style="display:none">
+      <div class="goals-grid">
+        <div class="goal-field"><label>Calorie Goal</label><input type="number" id="g-cal" placeholder="e.g. 3200"/></div>
+        <div class="goal-field"><label>Protein (g)</label><input type="number" id="g-pro" placeholder="e.g. 160"/></div>
+        <div class="goal-field"><label>Carbs (g)</label><input type="number" id="g-carb" placeholder="e.g. 400"/></div>
+        <div class="goal-field"><label>Fat (g)</label><input type="number" id="g-fat" placeholder="e.g. 90"/></div>
+        <div class="goal-field"><label>Water (oz)</label><input type="number" id="g-water" placeholder="e.g. 100"/></div>
+      </div>
+      <button class="save-goals-btn" onclick="saveGoals()">💾 Save Goals</button>
+    </div>
+  </div>
+
+  <!-- DAILY SUMMARY -->
+  <div class="summary-card">
+    <div class="summary-title">📊 DAY SUMMARY</div>
+    <div class="summary-grid">
+      <div class="summary-row"><span class="s-label">Total Calories</span><span class="s-val cal" id="s-cal">0</span></div>
+      <div class="summary-row"><span class="s-label">Total Protein</span><span class="s-val pro" id="s-pro">0g</span></div>
+      <div class="summary-row"><span class="s-label">Total Carbs</span><span class="s-val carb" id="s-carb">0g</span></div>
+      <div class="summary-row"><span class="s-label">Total Fat</span><span class="s-val fat" id="s-fat">0g</span></div>
+      <div class="summary-row"><span class="s-label">Water Intake</span><span class="s-val water" id="s-water">0oz</span></div>
+      <div class="summary-row"><span class="s-label">Drinks Logged</span><span class="s-val drinks" id="s-drinks">0</span></div>
+    </div>
+    <div class="goal-bars">
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">🔥 Calories</span><span class="goal-nums" id="gn-cal">0 / 3200</span></div>
+        <div class="prog-bar"><div class="prog-fill cal" id="gp-cal" style="width:0%"></div></div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">💪 Protein</span><span class="goal-nums" id="gn-pro">0 / 160g</span></div>
+        <div class="prog-bar"><div class="prog-fill pro" id="gp-pro" style="width:0%"></div></div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">⚡ Carbs</span><span class="goal-nums" id="gn-carb">0 / 400g</span></div>
+        <div class="prog-bar"><div class="prog-fill carb" id="gp-carb" style="width:0%"></div></div>
+      </div>
+      <div class="goal-row">
+        <div class="goal-row-top"><span class="goal-name">🫙 Fat</span><span class="goal-nums" id="gn-fat">0 / 90g</span></div>
+        <div class="prog-bar"><div class="prog-fill fat" id="gp-fat" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="statusBanner" class="status-banner warn">
+      <span class="status-ico">📋</span>
+      <span id="statusMsg">Start logging your meals to see your athlete status!</span>
+    </div>
+  </div>
+
+  <button class="open-db-btn" onclick="openFoodDB()">🍽 Browse Food Database &amp; AI Search &nbsp;·&nbsp; <span style="font-size:11px;font-weight:600;color:var(--muted2)">500+ foods + search anything</span></button>
+  <button class="reset-btn" onclick="resetDay()">🗑 Reset Today's Log</button>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TRAINING TAB
+══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-training">
+<div class="training-tab">
+
+  <div class="workout-header">
+    <div class="wh-label">TODAY'S WORKOUT</div>
+    <div class="wh-title" id="workoutTitle">Loading…</div>
+    <div class="wh-sub" id="workoutSub"></div>
+  </div>
+
+  <!-- WEEKLY SCHEDULE -->
+  <div class="schedule-grid" id="scheduleGrid"></div>
+
+  <!-- PRINCIPLES -->
+  <div class="principles-card">
+    <h3>⚡ KEY TRAINING PRINCIPLES</h3>
+    <div class="principle-item">Never skip the 30-minute post-practice recovery window — this is where gains are made or lost</div>
+    <div class="principle-item">Morning activation is 20 min max — mobility, core, CNS priming only before school</div>
+    <div class="principle-item">Tue & Thu gym sessions start no later than 6PM for full recovery before bed</div>
+    <div class="principle-item">On track days: arrive 15 min early for dynamic warm-up before coach-led session</div>
+    <div class="principle-item">Saturday = active recovery ONLY. Sunday = full mental and physical rest, no exceptions</div>
+    <div class="principle-item">Always land with soft knees on plyos. If legs feel dead, cut plyo volume in half</div>
+  </div>
+
+  <!-- TODAY'S DETAILED WORKOUT -->
+  <div id="todayWorkoutDetail"></div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-card">
+    <h3>📈 4-WEEK PERFORMANCE TIMELINE</h3>
+    <div class="timeline-items">
+      <div class="tl-item"><div class="tl-week">WEEK 1</div><div class="tl-focus">Volume & Foundation</div><div class="tl-goal">Learn movements, build base. Soreness peaks Day 3–4 then drops.</div></div>
+      <div class="tl-item"><div class="tl-week">WEEK 2</div><div class="tl-focus">Push PRs</div><div class="tl-goal">Heavy barbell work. Block starts feel more explosive. CNS adapting.</div></div>
+      <div class="tl-item"><div class="tl-week">WEEK 3</div><div class="tl-focus">Speed + Strength</div><div class="tl-goal">Flying 30s feel noticeably faster. PRs start happening this week.</div></div>
+      <div class="tl-item" style="border-color:rgba(240,165,0,.4)"><div class="tl-week" style="color:var(--gold2)">WEEK 4</div><div class="tl-focus">Taper &amp; Race</div><div class="tl-goal">Reduce gym 30%, maintain sprint intensity. Body primed for low 10s.</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MEAL PLAN TAB
+══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-mealplan">
+<div class="mealplan-tab" id="mealPlanContent">
+  <!-- Rendered by JS -->
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     RECOVERY TAB
+══════════════════════════════════════════ -->
+<div class="tab-content" id="tab-recovery">
+<div class="recovery-tab">
+
+  <div class="recovery-score">
+    <div class="rs-label">TODAY'S RECOVERY SCORE</div>
+    <div class="rs-score" id="recoveryScore">0</div>
+    <div class="rs-max">/ 10 points</div>
+    <div class="rs-bar"><div class="rs-fill" id="recoveryBar" style="width:0%"></div></div>
+    <div class="rs-msg" id="recoveryMsg">Complete your checklist to see your score</div>
+  </div>
+
+  <div class="checklist-card">
+    <h3>✅ DAILY RECOVERY CHECKLIST</h3>
+    <div id="checklistItems"></div>
+  </div>
+
+  <div class="nutrition-rules">
+    <h3>⚡ NUTRITION NON-NEGOTIABLES</h3>
+    <div class="rule-item"><span class="rule-ico">💪</span><div><strong>Protein:</strong> 0.8–1g per lb of bodyweight per day (160 lb = 160g). Non-negotiable.</div></div>
+    <div class="rule-item"><span class="rule-ico">⚡</span><div><strong>Carbs are your fuel:</strong> Brown rice, sweet potato, oats, banana, pasta are all good. Never skip carbs before practice.</div></div>
+    <div class="rule-item"><span class="rule-ico">💧</span><div><strong>Hydration:</strong> 100oz water minimum daily. Add electrolytes (Liquid IV, LMNT, Nuun) on training days.</div></div>
+    <div class="rule-item"><span class="rule-ico">🚫</span><div><strong>No junk food within 3 hours of practice</strong> — you will feel slow and heavy on the track.</div></div>
+    <div class="rule-item"><span class="rule-ico">🥤</span><div><strong>Post-practice window (30 min):</strong> Protein shake (25–30g) + fast carb. This is critical — don't miss it.</div></div>
+    <div class="rule-item"><span class="rule-ico">🌙</span><div><strong>9PM snack:</strong> Casein protein or Greek yogurt with PB — slow-digesting protein feeds muscles overnight.</div></div>
+    <div class="rule-item"><span class="rule-ico">✝️</span><div><strong>Fridays through Easter:</strong> ZERO MEAT. Fish, eggs, dairy, veggies only. No exceptions.</div></div>
+    <div class="rule-item"><span class="rule-ico">🚫</span><div><strong>Never eat:</strong> Italian Hoagie, Philly Cheesesteak, Meatball Sub, Buffalo Chicken specials with pork.</div></div>
+  </div>
+
+  <div class="checklist-card">
+    <h3>🏋️ WEEKLY RECOVERY MILESTONES</h3>
+    <div class="principle-item" style="padding:8px 0;border-bottom:1px solid var(--border);">By end of Week 1: Body adapted to volume. Soreness will peak Day 3–4 then decrease.</div>
+    <div class="principle-item" style="padding:8px 0;border-bottom:1px solid var(--border);">By end of Week 2: Block starts and reaction time feel more explosive. CNS adapting.</div>
+    <div class="principle-item" style="padding:8px 0;border-bottom:1px solid var(--border);">By end of Week 3: Top-end speed sessions feel noticeably faster. PRs start happening.</div>
+    <div class="principle-item" style="padding:8px 0;">Week 4 (Taper): Reduce gym volume 30%, maintain sprint intensity. Body primed to run fast.</div>
+  </div>
+
+</div>
+</div>
+
+<!-- FOOD DATABASE MODAL -->
+<div class="modal-overlay" id="foodModal" onclick="handleOverlayClick(event)">
+  <div class="food-modal">
+    <div class="modal-hdr">
+      <div class="modal-title">🍽 Food Database</div>
+      <button class="modal-close" onclick="closeFoodDB()">✕ Close</button>
+    </div>
+    <div class="db-search-wrap">
+      <div class="db-search-row">
+        <input class="db-search-input" id="dbSearchInput" placeholder="Search foods... or ask AI (e.g. 'Body Armor Lyte 16oz')" oninput="filterFoods()" onkeydown="searchKeydown(event)"/>
+        <button class="ai-search-btn" id="aiSearchBtn" onclick="aiSearch()"><span class="btn-ico">✨</span> AI Search</button>
+      </div>
+      <div class="ai-results-panel" id="aiPanel"></div>
+    </div>
+    <div class="cat-tabs" id="catTabs"></div>
+    <div class="food-list-wrap" id="foodList"></div>
+    <div class="meal-select-row" id="mealSelectRow">
+      <span style="font-size:10px;color:var(--muted);font-weight:700;flex-shrink:0;">Add to:</span>
+      <button class="meal-sel-btn selected" data-meal="breakfast" onclick="selectMealTarget(this)">🌅 Breakfast</button>
+      <button class="meal-sel-btn" data-meal="snack1" onclick="selectMealTarget(this)">🍎 Snack 1</button>
+      <button class="meal-sel-btn" data-meal="lunch" onclick="selectMealTarget(this)">🥗 Lunch</button>
+      <button class="meal-sel-btn" data-meal="snack2" onclick="selectMealTarget(this)">⚡ Pre-Practice</button>
+      <button class="meal-sel-btn" data-meal="dinner" onclick="selectMealTarget(this)">🍽 Dinner</button>
+      <button class="meal-sel-btn" data-meal="evening" onclick="selectMealTarget(this)">🌙 Evening</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════
+
+const MEAL_PLAN = [
+  {week:1,date:"March 4",dow:"Wednesday",type:"reg",
+   breakfast:{name:"Oatmeal + Banana + Almond Butter",desc:"Chia seeds. Hard-boiled eggs (2). 1 cup OJ.",icon:"🌾",cal:480,pro:20,carb:72,fat:14},
+   lunch:{go:{name:"Asian Rice Bowl",desc:"Wednesday staple — best carb load before afternoon practice. Ask for extra rice.",tags:["go","best"],price:"$6.95",cal:420,pro:22,carb:68,fat:8},alt:{name:"Chicken Caesar Value Meal",desc:"Solid fallback if Rice Bowl isn't available today.",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Baked Chicken Thighs (skinless)",desc:"Brown rice + roasted zucchini & bell pepper. Fresh salad w/ olive oil & lemon.",icon:"🍗",cal:620,pro:52,carb:58,fat:18},
+   snack1:{name:"Grapes + Almonds",desc:"Quick carbs + healthy fats — perfect between lunch and 3PM practice"},
+   snack2:{name:"Organic Grape Snack Pouch",desc:"Sun-Maid Organic or similar — no added sugar"},
+   tip:"Today is Day 1 — Wednesday March 4. Asian Rice Bowl at lunch is perfectly timed before practice. Let's go."},
+  {week:1,date:"March 5",dow:"Thursday",type:"reg",
+   breakfast:{name:"Veggie Omelette",desc:"3 eggs, spinach, peppers, onion. Whole grain toast. Sliced strawberries.",icon:"🍳",cal:420,pro:28,carb:30,fat:18},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Grilled chicken, romaine, parmesan & tomato. Clean protein, light on the stomach before practice.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16},avoid:{name:"Philly Cheesesteak w/ Fries",reason:"Beef — skip entirely.",price:"$6.95"}},
+   dinner:{name:"Baked Salmon + Brown Rice",desc:"Steamed asparagus + roasted cherry tomatoes. Lemon-dill drizzle.",icon:"🐟",cal:640,pro:56,carb:50,fat:20},
+   snack1:{name:"Grapes + Almonds",desc:"Natural sugars + healthy fats for sustained energy"},
+   snack2:{name:"Organic Strawberry Fruit Snack",desc:"Annie's or Stretch Island — clean, no artificial dye"},
+   tip:"Thursday is gym night — keep lunch light. The Value Meal is exactly right."},
+  {week:1,date:"March 6",dow:"Friday",type:"fri",
+   breakfast:{name:"Avocado Toast + 2 Poached Eggs",desc:"2 slices whole grain. Sliced tomato & cucumber. Fresh fruit cup.",icon:"🥑",cal:440,pro:22,carb:36,fat:22},
+   lunch:{go:{name:"Garden Salad + Egg/Cheese",desc:"Only real option on a Friday. Ask for hard-boiled egg or feta to add protein. Olive oil dressing.",tags:["fri","go"],price:"varies",cal:180,pro:10,carb:12,fat:9},pack:{name:"Pack Your Own",desc:"Tuna on whole grain + Greek yogurt + apple. Takes 3 min to prep the night before.",tags:["pack"]},avoid:{name:"Meatball Sub w/ Fries",reason:"Beef/pork blend + it's Friday — double skip.",price:"$6.95"}},
+   dinner:{name:"Pan-Seared Tilapia + Mango Salsa",desc:"Brown rice + roasted bell peppers + steamed broccoli.",icon:"🐠",cal:560,pro:48,carb:58,fat:12},
+   snack1:{name:"Strawberries + Greek Yogurt",desc:"Antioxidants + protein — perfect pre-practice combo"},
+   snack2:{name:"Organic Berry Blend Snack Pouch",desc:"Plum Organics or Made in Nature — whole fruit ingredients"},
+   tip:"Friday is your hardest cafeteria day. Pack lunch the night before — tuna + fruit + yogurt beats anything in the cafeteria today.",fri:true},
+  {week:1,date:"March 7",dow:"Saturday",type:"wknd",
+   breakfast:{name:"Whole Grain Pancakes + Fresh Berries",desc:"2 pancakes + maple syrup. Scrambled eggs (2). OJ.",icon:"🥞",cal:520,pro:22,carb:72,fat:14},
+   lunch:{go:{name:"Grilled Chicken Sandwich (Homemade)",desc:"Whole wheat bun, lettuce, tomato, avocado, mustard. Side: baked sweet potato fries.",tags:["go","best"]},note:"Weekend — make your own lunch at home!"},
+   dinner:{name:"Baked Lemon Herb Chicken",desc:"Roasted root vegetables (carrot, parsnip, beet). Brown rice.",icon:"🍗",cal:600,pro:50,carb:60,fat:16},
+   snack1:{name:"Watermelon Slices",desc:"Hydrating — great on an active Saturday"},
+   snack2:{name:"Organic Tropical Fruit Snack",desc:"Trader Joe's Organic or similar — mango/pineapple blend"},
+   tip:"Saturday is active recovery day. Eat well but don't overtrain."},
+  {week:1,date:"March 8",dow:"Sunday",type:"wknd",
+   breakfast:{name:"Veggie Egg Scramble",desc:"Spinach, mushroom, peppers. 2 slices whole grain toast. Fresh fruit salad.",icon:"🍳",cal:420,pro:26,carb:40,fat:14},
+   lunch:{go:{name:"Turkey & Avocado Wrap (Homemade)",desc:"Whole wheat tortilla, avocado, spinach, tomato, mustard. Side of mixed berries.",tags:["go","best"]},note:"Meal prep Sunday — prep snacks and lunches for the week!"},
+   dinner:{name:"Sheet Pan Chicken Thighs",desc:"Brussels sprouts & sweet potato. Olive oil, garlic, rosemary. Full glycogen reload for the week.",icon:"🍗",cal:640,pro:52,carb:62,fat:20},
+   snack1:{name:"Banana + Peanut Butter",desc:"Best pre-/post-workout snack combo — fast carb + protein"},
+   snack2:{name:"Organic Fruit Snack Pouch",desc:"Any clean brand — check ingredients: fruit should be #1"},
+   tip:"Sunday is full rest. Eat big and sleep 9+ hours to be ready for Monday practice."},
+  {week:2,date:"March 9",dow:"Monday",type:"reg",
+   breakfast:{name:"Oatmeal + Banana + Almond Butter",desc:"Chia seeds. Hard-boiled eggs (2). 1 cup OJ.",icon:"🌾",cal:480,pro:20,carb:72,fat:14},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Your Mon–Thu anchor. Consistent protein, never heavy.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16},avoid:{name:"Italian Hoagie",reason:"Salami, capicola, pepperoni — all pork. Hard skip.",price:"$6.95"}},
+   dinner:{name:"Baked Salmon + Brown Rice",desc:"Sautéed kale + roasted cherry tomatoes. Lemon-herb sauce.",icon:"🐟",cal:640,pro:56,carb:50,fat:20},
+   snack1:{name:"Pineapple Chunks + Macadamia Nuts",desc:"Bromelain in pineapple = natural anti-inflammatory after Monday practice"},
+   snack2:{name:"Organic Pineapple Fruit Snack",desc:"Stretch Island or similar whole-fruit pouch"},
+   tip:"Monday sets the tone. Nail nutrition today and you'll feel it all week."},
+  {week:2,date:"March 10",dow:"Tuesday",type:"reg",
+   breakfast:{name:"Protein Smoothie",desc:"Mango, spinach, protein powder, almond milk, PB. Whole grain toast.",icon:"🥤",cal:460,pro:32,carb:54,fat:12},
+   lunch:{go:{name:"Build Your Own Taco Bar",desc:"Chicken protein + beans, peppers, lettuce. Light on sour cream, heavy on salsa.",tags:["go","best"],price:"$6.95",cal:450,pro:28,carb:52,fat:12},alt:{name:"Chicken Caesar Value Meal",desc:"Backup if taco bar protein isn't chicken today.",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Turkey Meatballs (Baked)",desc:"Whole grain pasta + marinara sauce. Roasted zucchini.",icon:"🍝",cal:580,pro:44,carb:68,fat:14},
+   snack1:{name:"Orange + String Cheese",desc:"Vitamin C + calcium — supports bone density for sprint impact"},
+   snack2:{name:"Organic Mango Snack Pouch",desc:"Made in Nature mango strips or similar"},
+   tip:"Taco Bar Tuesday — go for it. This is one of your best cafeteria meals all month."},
+  {week:2,date:"March 11",dow:"Wednesday",type:"reg",
+   breakfast:{name:"3-Egg Omelette",desc:"Spinach, tomato, feta. Whole grain toast. Fresh fruit.",icon:"🍳",cal:430,pro:28,carb:32,fat:18},
+   lunch:{go:{name:"Asian Rice Bowl",desc:"Your best Wednesday entrée. Rice = excellent carb load before afternoon practice. Ask for extra rice.",tags:["go","best"],price:"$6.95",cal:420,pro:22,carb:68,fat:8},alt:{name:"Chicken Caesar Value Meal",desc:"Solid fallback.",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Baked Salmon + Brown Rice",desc:"Steamed asparagus + roasted cherry tomatoes. Lemon-dill drizzle.",icon:"🐟",cal:640,pro:56,carb:50,fat:20},
+   snack1:{name:"Grapes + Almonds",desc:"Quick carbs + healthy fats for sustained energy through practice"},
+   snack2:{name:"Organic Grape Snack Pouch",desc:"Sun-Maid Organic or similar"},
+   tip:"Wednesday = hardest practice day. The Rice Bowl is perfectly timed — go for the full $6.95 entrée today."},
+  {week:2,date:"March 12",dow:"Thursday",type:"reg",
+   breakfast:{name:"Oatmeal + Strawberries + Chia Seeds",desc:"Honey drizzle. 2 hard-boiled eggs. OJ.",icon:"🌾",cal:440,pro:20,carb:66,fat:10},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Thursday entrée is likely heavy — Caesar is cleaner and better for a gym night.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Herb-Roasted Chicken Breast",desc:"Baked sweet potato + sautéed kale. Fresh salad.",icon:"🍗",cal:580,pro:50,carb:52,fat:14},
+   snack1:{name:"Banana + Peanut Butter",desc:"Classic pre-gym snack — fast carb + slow protein"},
+   snack2:{name:"Organic Strawberry Snack",desc:"Annie's Organic or similar"},
+   tip:"Thursday gym night — light lunch is key. Don't go into the gym session sluggish."},
+  {week:2,date:"March 13",dow:"Friday",type:"fri",
+   breakfast:{name:"Avocado & Egg Toast",desc:"2 eggs over easy. 2 slices whole grain. Sliced tomato & cucumber. Fresh fruit cup.",icon:"🥑",cal:440,pro:22,carb:36,fat:22},
+   lunch:{go:{name:"Garden Salad + Egg / Feta",desc:"Add hard-boiled egg or feta for protein. Olive oil dressing only.",tags:["fri","go"],price:"varies",cal:180,pro:10,carb:12,fat:9},pack:{name:"Pack: Tuna Sandwich + Fruit",desc:"Whole grain bread, tuna in water, lettuce, tomato. Apple + Greek yogurt. Best Friday option overall.",tags:["pack"]}},
+   dinner:{name:"Shrimp Stir Fry",desc:"Bell peppers, snap peas, broccoli. Brown rice. Sesame-ginger sauce.",icon:"🦐",cal:520,pro:44,carb:60,fat:10},
+   snack1:{name:"Blueberries + Greek Yogurt",desc:"Antioxidant powerhouse — great recovery snack"},
+   snack2:{name:"Organic Blueberry Snack Pouch",desc:"Plum Organics or similar"},
+   tip:"St. Patrick's week — keep it green and clean. Pack lunch tonight for tomorrow.",fri:true},
+  {week:2,date:"March 14",dow:"Saturday",type:"wknd",
+   breakfast:{name:"Whole Wheat Waffles + Blueberry Compote",desc:"Scrambled eggs (2). 1 cup milk.",icon:"🧇",cal:500,pro:24,carb:68,fat:14},
+   lunch:{go:{name:"Chicken & Avocado Salad Bowl",desc:"Romaine, corn, black beans, cilantro-lime dressing. Homemade.",tags:["go","best"]},note:"Weekend — cook at home!"},
+   dinner:{name:"Baked Chicken Quarters",desc:"Roasted sweet potato wedges + broccoli. Garlic olive oil sauce.",icon:"🍗",cal:620,pro:52,carb:58,fat:18},
+   snack1:{name:"Mango Chunks + Macadamia Nuts",desc:"Tropical combo — natural energy + healthy fat"},
+   snack2:{name:"Organic Tropical Snack Pouch",desc:"Trader Joe's Organic Mango or similar"},
+   tip:"Active recovery Saturday — light movement, big eating. Sleep 9+ hours tonight."},
+  {week:2,date:"March 15",dow:"Sunday",type:"wknd",
+   breakfast:{name:"Spinach & Mushroom Frittata",desc:"3 eggs. Whole grain toast. Fresh OJ.",icon:"🍳",cal:420,pro:26,carb:38,fat:16},
+   lunch:{go:{name:"Turkey & Veggie Wrap",desc:"Whole wheat, avocado, spinach, tomato. Side: mixed fruit. Make extra for Monday lunch if possible.",tags:["go","best"]},note:"Meal prep Sunday — set yourself up for the week."},
+   dinner:{name:"Sheet Pan Salmon",desc:"Broccolini, cherry tomatoes, lemon. Brown rice on the side.",icon:"🐟",cal:620,pro:54,carb:50,fat:18},
+   snack1:{name:"Pineapple + Coconut Flakes",desc:"Anti-inflammatory combo — good after a week of heavy training"},
+   snack2:{name:"Organic Pineapple Snack",desc:"Stretch Island Fruit Co. or similar"},
+   tip:"Full rest Sunday. Prep lunches tonight — wrap + fruit + yogurt takes 10 minutes and sets up your whole week."},
+  {week:3,date:"March 16",dow:"Monday",type:"reg",
+   breakfast:{name:"Green Smoothie",desc:"Spinach, banana, apple, almond milk, protein powder. Whole grain toast.",icon:"🥤",cal:440,pro:28,carb:60,fat:10},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Week 3 — your body is adapting. Keep nutrition consistent.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16},avoid:{name:"Italian Hoagie",reason:"Salami, pepperoni — all pork. Never touch this one.",price:"$6.95"}},
+   dinner:{name:"Herb-Crusted Chicken Breast",desc:"Roasted green veg (broccoli, zucchini, edamame). Brown rice.",icon:"🍗",cal:580,pro:52,carb:54,fat:14},
+   snack1:{name:"Kiwi + Almonds",desc:"Kiwi = vitamin C + potassium — great for muscle function"},
+   snack2:{name:"Organic Green Apple Snack",desc:"Annie's Organic Apple or similar"},
+   tip:"St. Patrick's Day week — stay green with your vegetables. Week 3 is when speed gains start showing."},
+  {week:3,date:"March 17",dow:"Tuesday",type:"reg",
+   breakfast:{name:"Oatmeal + Banana + Chia Seeds",desc:"Almond butter. 2 scrambled eggs. OJ. Happy St. Patrick's Day!",icon:"🌾",cal:480,pro:20,carb:72,fat:14},
+   lunch:{go:{name:"Build Your Own Taco Bar",desc:"Chicken + beans + peppers + salsa. No sour cream.",tags:["go","best"],price:"$6.95",cal:450,pro:28,carb:52,fat:12},alt:{name:"Chicken Caesar Value Meal",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Baked Turkey Breast Slices",desc:"Mashed sweet potato + green beans. Fresh garden salad.",icon:"🦃",cal:560,pro:48,carb:56,fat:12},
+   snack1:{name:"Apple + String Cheese",desc:"Fiber + protein — fills you up without weighing you down"},
+   snack2:{name:"Organic Apple Snack Pouch",desc:"GoGo SqueeZ Organic Apple or similar"},
+   tip:"Happy St. Patrick's Day! Keep it clean — big gym session tonight, don't eat heavy at lunch."},
+  {week:3,date:"March 18",dow:"Wednesday",type:"reg",
+   breakfast:{name:"Protein Smoothie Bowl",desc:"Banana, berries, Greek yogurt. Granola + chia seeds on top.",icon:"🥤",cal:480,pro:28,carb:64,fat:12},
+   lunch:{go:{name:"Asian Rice Bowl",desc:"Wednesday staple. Carb-load for afternoon practice.",tags:["go","best"],price:"$6.95",cal:420,pro:22,carb:68,fat:8},alt:{name:"Chicken Caesar Value Meal",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Baked Chicken Thighs",desc:"Brown rice + roasted Brussels sprouts & carrots.",icon:"🍗",cal:600,pro:50,carb:58,fat:18},
+   snack1:{name:"Grapes + String Cheese",desc:"Quick carbs + calcium + protein — great pre-practice snack"},
+   snack2:{name:"Organic Citrus Snack",desc:"Stretch Island Orange or similar"},
+   tip:"Week 3 Wednesday — flying 30s at practice. Carb up with the Rice Bowl. This is the week PRs start happening."},
+  {week:3,date:"March 19",dow:"Thursday",type:"reg",
+   breakfast:{name:"3-Egg Veggie Scramble",desc:"Peppers, onion, spinach. Whole grain toast. Fresh strawberries.",icon:"🍳",cal:420,pro:26,carb:32,fat:16},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Pre-gym Thursday. Light, clean, high protein. Perfect pre-session meal.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Grilled Chicken Breast",desc:"Brown rice + sautéed asparagus. Tomato & cucumber salad.",icon:"🍗",cal:560,pro:52,carb:50,fat:10},
+   snack1:{name:"Banana + Peanut Butter",desc:"Power snack before evening gym session"},
+   snack2:{name:"Organic Strawberry Snack",desc:"Annie's Organic Bunny Fruit Snacks or similar"},
+   tip:"Big gym night — power cleans and sled push. Eat dinner within 30 minutes of finishing."},
+  {week:3,date:"March 20",dow:"Friday",type:"fri",
+   breakfast:{name:"2 Poached Eggs on Avocado Toast",desc:"Whole grain. Sliced mango. Water with lemon.",icon:"🥑",cal:420,pro:18,carb:34,fat:22},
+   lunch:{go:{name:"Garden Salad + Protein Add-On",desc:"Add egg, feta, or chickpeas if available. Olive oil dressing.",tags:["fri","go"],price:"varies",cal:200,pro:12,carb:14,fat:10},pack:{name:"Pack: Black Bean & Rice Burrito",desc:"Corn tortilla, black beans, brown rice, salsa, avocado.",tags:["pack"]}},
+   dinner:{name:"Baked Cod with Herb Crust",desc:"Brown rice + roasted cauliflower & cherry tomatoes. Fresh green salad.",icon:"🐟",cal:520,pro:46,carb:54,fat:10},
+   snack1:{name:"Pineapple Chunks + Coconut Flakes",desc:"Anti-inflammatory Friday recovery snack"},
+   snack2:{name:"Organic Berry Snack Pouch",desc:"Plum Organics or Stretch Island berry blend"},
+   tip:"First day of Spring! Keep the diet clean. Friday packing is paying off by now.",fri:true},
+  {week:3,date:"March 21",dow:"Saturday",type:"wknd",
+   breakfast:{name:"French Toast (Whole Grain)",desc:"2 slices + maple syrup. Fresh mixed berries. Scrambled eggs (2).",icon:"🍞",cal:520,pro:24,carb:68,fat:14},
+   lunch:{go:{name:"Chicken & Rice Soup (Homemade)",desc:"Whole grain roll. Side salad.",tags:["go","best"]},note:"Weekend home cooking!"},
+   dinner:{name:"Baked Lemon-Pepper Chicken",desc:"Roasted sweet potatoes + steamed broccoli. Fresh salad.",icon:"🍗",cal:600,pro:52,carb:60,fat:16},
+   snack1:{name:"Peach Slices + Almonds",desc:"Stone fruit + healthy fat — great Saturday recovery snack"},
+   snack2:{name:"Organic Peach Snack",desc:"Stretch Island Peach or Made in Nature"},
+   tip:"Week 3 Saturday — your body is primed. Active recovery: light walk/bike, big clean meals, 9+ hours sleep."},
+  {week:3,date:"March 22",dow:"Sunday",type:"wknd",
+   breakfast:{name:"Omelette — Mushroom, Spinach, Feta, Tomato",desc:"3 eggs. Whole grain toast. OJ.",icon:"🍳",cal:440,pro:28,carb:36,fat:18},
+   lunch:{go:{name:"Turkey Meatball Sub (Homemade)",desc:"Whole wheat roll, marinara, mozzarella, roasted peppers. Side salad.",tags:["go","best"]},note:"Cook extra today — lunches for the week!"},
+   dinner:{name:"Baked Salmon",desc:"Brown rice + roasted zucchini & yellow squash. Lemon-dill sauce.",icon:"🐟",cal:620,pro:54,carb:50,fat:18},
+   snack1:{name:"Grapes + String Cheese",desc:"Light Sunday snack — easy digestion"},
+   snack2:{name:"Organic Fruit Snack Pouch",desc:"Any clean brand — check for whole fruit as first ingredient"},
+   tip:"End of Week 3 — you should be noticeably faster. Full rest today, prep tomorrow's lunch tonight."},
+  {week:4,date:"March 23",dow:"Monday",type:"reg",
+   breakfast:{name:"Overnight Oats",desc:"Oats, chia, almond milk, banana, honey. Hard-boiled eggs (2). Prep Sunday night.",icon:"🌾",cal:490,pro:22,carb:74,fat:12},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Week 4 taper week — keep nutrition dialed in and consistent.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16},avoid:{name:"Buffalo Chicken (Sandwich Special)",reason:"High sodium, heavy sauce — not ideal pre-practice.",price:"$6.95"}},
+   dinner:{name:"Baked Chicken Thighs",desc:"Brown rice + roasted broccoli & carrots. Garlic olive oil.",icon:"🍗",cal:600,pro:50,carb:58,fat:18},
+   snack1:{name:"Orange + Almonds",desc:"Vitamin C boosts iron absorption from your meals"},
+   snack2:{name:"Organic Citrus Snack Pouch",desc:"Stretch Island Orange or Plum Organics citrus"},
+   tip:"Week 4 = taper week. Reduce gym volume 30% but MAINTAIN sprint intensity. Your body is primed to go fast."},
+  {week:4,date:"March 24",dow:"Tuesday",type:"reg",
+   breakfast:{name:"Smoothie: Mango + Spinach + Banana",desc:"Protein powder + almond milk. Whole grain toast.",icon:"🥤",cal:460,pro:30,carb:62,fat:10},
+   lunch:{go:{name:"Build Your Own Taco Bar",desc:"Last Tuesday Taco Bar of the month. Chicken + beans + peppers.",tags:["go","best"],price:"$6.95",cal:450,pro:28,carb:52,fat:12},alt:{name:"Chicken Caesar Value Meal",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Herb-Baked Turkey Breast",desc:"Sweet potato + steamed green beans. Fresh salad.",icon:"🦃",cal:560,pro:48,carb:54,fat:12},
+   snack1:{name:"Apple + String Cheese",desc:"Consistent snack — simple, effective"},
+   snack2:{name:"Organic Apple Snack",desc:"GoGo SqueeZ or similar"},
+   tip:"Taper Tuesday — gym session lighter this week. Focus on explosive reps, fewer total sets."},
+  {week:4,date:"March 25",dow:"Wednesday",type:"reg",
+   breakfast:{name:"Veggie Breakfast Burrito",desc:"Whole wheat tortilla, 3 eggs, spinach, peppers, salsa. Fresh fruit.",icon:"🌯",cal:480,pro:26,carb:52,fat:18},
+   lunch:{go:{name:"Asian Rice Bowl",desc:"Last Wednesday Rice Bowl of the month. Still your best pre-practice carb load.",tags:["go","best"],price:"$6.95",cal:420,pro:22,carb:68,fat:8},alt:{name:"Chicken Caesar Value Meal",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Baked Tilapia",desc:"Brown rice + steamed asparagus. Mango salsa.",icon:"🐠",cal:540,pro:48,carb:54,fat:10},
+   snack1:{name:"Banana + Peanut Butter",desc:"Power snack — fast carbs + protein"},
+   snack2:{name:"Organic Grape Snack Pouch",desc:"Sun-Maid Organic or similar"},
+   tip:"Week 4 Wednesday — flying 30s should feel noticeably different than Week 1. Trust the process."},
+  {week:4,date:"March 26",dow:"Thursday",type:"reg",
+   breakfast:{name:"Oatmeal + Peaches + Chia Seeds",desc:"Almond butter. 2 hard-boiled eggs. OJ.",icon:"🌾",cal:460,pro:20,carb:68,fat:12},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Final Thursday Caesar of the month. Light gym session tonight — taper week.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Baked Chicken Breast",desc:"Brown rice + roasted Brussels sprouts. Lemon-garlic sauce.",icon:"🍗",cal:560,pro:52,carb:52,fat:12},
+   snack1:{name:"Apple + Almond Butter",desc:"Steady energy for the gym session — no crash"},
+   snack2:{name:"Organic Orange Snack",desc:"Stretch Island or similar"},
+   tip:"Last heavy gym Thursday — reduce volume 30% but keep intensity on Olympic lifts. Your CNS is primed."},
+  {week:4,date:"March 27",dow:"Friday",type:"fri",
+   breakfast:{name:"2 Poached Eggs on Avocado Toast",desc:"Whole grain. Sliced tomato & cucumber. Fresh OJ.",icon:"🥑",cal:420,pro:18,carb:34,fat:22},
+   lunch:{go:{name:"Garden Salad + Egg/Feta",desc:"Friday routine by now. Add protein topping. Olive oil dressing.",tags:["fri","go"],price:"varies",cal:180,pro:10,carb:12,fat:9},pack:{name:"Pack: Black Bean Tacos",desc:"2 corn tortillas, black beans, avocado, salsa, lime, shredded cabbage.",tags:["pack"]}},
+   dinner:{name:"Baked Cod with Herb Crust",desc:"Brown rice + roasted cauliflower. Cherry tomatoes. Green salad.",icon:"🐟",cal:520,pro:46,carb:54,fat:10},
+   snack1:{name:"Strawberries + Greek Yogurt",desc:"Recovery Friday — antioxidants + protein"},
+   snack2:{name:"Organic Berry Snack Pouch",desc:"Plum Organics or Annie's berry blend"},
+   tip:"Second to last Friday of the month. By now packing lunch is second nature. One week left — finish strong.",fri:true},
+  {week:4,date:"March 28",dow:"Saturday",type:"wknd",
+   breakfast:{name:"Whole Wheat Pancakes + Fresh Berries",desc:"Scrambled eggs (2). 1 cup milk.",icon:"🥞",cal:500,pro:22,carb:68,fat:14},
+   lunch:{go:{name:"Baked Chicken Wrap (Homemade)",desc:"Whole wheat, roasted peppers, hummus, spinach, feta. Side: mixed fruit.",tags:["go","best"]},note:"Weekend — make it count with a big home meal."},
+   dinner:{name:"Sheet Pan Chicken",desc:"Sweet potatoes, broccoli, red onion. Balsamic glaze.",icon:"🍗",cal:620,pro:52,carb:62,fat:18},
+   snack1:{name:"Mango Chunks + Macadamia Nuts",desc:"Anti-inflammatory + healthy fat Saturday combo"},
+   snack2:{name:"Organic Mango Snack",desc:"Made in Nature mango or similar"},
+   tip:"Week 4 Saturday — active recovery only. Big clean meals, 9+ hours sleep. Race-ready mode activated."},
+  {week:4,date:"March 29",dow:"Sunday",type:"wknd",
+   breakfast:{name:"Spinach & Feta Scramble",desc:"3 eggs. Whole grain toast. Fresh strawberries + OJ.",icon:"🍳",cal:440,pro:26,carb:40,fat:16},
+   lunch:{go:{name:"Salmon & Brown Rice Bowl (Homemade)",desc:"Edamame, avocado, cucumber, soy-ginger dressing. Best Sunday protein load.",tags:["go","best"]},note:"Prep week's snacks and lunches today."},
+   dinner:{name:"Herb-Roasted Chicken Thighs",desc:"Mashed sweet potato + roasted green beans. Fresh salad.",icon:"🍗",cal:620,pro:52,carb:60,fat:20},
+   snack1:{name:"Grapes + String Cheese",desc:"Light Sunday snack — easy digestion before the final week"},
+   snack2:{name:"Organic Fruit Snack Pouch",desc:"Clean brand — whole fruit first ingredient"},
+   tip:"Final rest Sunday. You've completed 4 weeks. Sleep 9+ hours. Tomorrow starts your final sprint week."},
+  {week:5,date:"March 30",dow:"Monday",type:"reg",
+   breakfast:{name:"Protein Smoothie",desc:"Banana, berries, spinach, Greek yogurt, protein powder. Whole grain toast + almond butter.",icon:"🥤",cal:480,pro:34,carb:60,fat:12},
+   lunch:{go:{name:"Chicken Caesar Value Meal",desc:"Final Monday of March. Consistent to the end.",tags:["go","val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16},avoid:{name:"Italian Hoagie",reason:"Pork products — always off the table.",price:"$6.95"}},
+   dinner:{name:"Baked Salmon Fillet",desc:"Brown rice + steamed broccoli + roasted asparagus. Lemon-herb butter.",icon:"🐟",cal:640,pro:56,carb:50,fat:20},
+   snack1:{name:"Orange + Almonds",desc:"Final week — keep the routine exactly the same"},
+   snack2:{name:"Organic Citrus Snack Pouch",desc:"Whatever you've been using all month"},
+   tip:"Final week of March. Taper is complete. Your body is READY. Nutrition consistency this week = a big PR."},
+  {week:5,date:"March 31",dow:"Tuesday",type:"reg",
+   breakfast:{name:"Overnight Oats + Berries + Honey",desc:"Chia seeds. 2 hard-boiled eggs. OJ. Prep Monday night.",icon:"🌾",cal:480,pro:22,carb:72,fat:12},
+   lunch:{go:{name:"Build Your Own Taco Bar",desc:"Last Taco Bar of March. Final week — get everything in. Load up.",tags:["go","best"],price:"$6.95",cal:450,pro:28,carb:52,fat:12},alt:{name:"Chicken Caesar Value Meal",tags:["val"],price:"$5.00",cal:380,pro:32,carb:18,fat:16}},
+   dinner:{name:"Grilled Chicken Breast",desc:"Brown rice + roasted zucchini & yellow squash. Lemon-herb sauce. Final dinner of the month — make it count.",icon:"🍗",cal:580,pro:52,carb:56,fat:12},
+   snack1:{name:"Banana + Peanut Butter",desc:"Classic. Never fails. Final snack of March."},
+   snack2:{name:"Organic Fruit Snack Pouch",desc:"Whatever you have left — finish the month strong"},
+   tip:"Last day of March. 4 weeks of consistent eating, training, and recovery. You earned those 10s."}
+];
+
+// Date key for each plan entry
+function getMPKey(entry){ const d=parseInt(entry.date.split(' ')[1]); return`2026-03-${String(d).padStart(2,'0')}`; }
+
+// Training schedule per day-of-week
+const TRAINING_SCHEDULE = {
+  1:{ // Monday
+    label:'Speed Endurance',emoji:'⚡',badge:'track-b',
+    morning:{label:'Morning Activation',desc:'Activation drills + DB Posterior Chain circuit (Session A)'},
+    practice:{label:'Track Practice 3–4:30PM',desc:'30–60m speed endurance runs, block starts, speed ladder'},
+    evening:{label:'Evening Recovery',desc:'10 min static stretch (hip flexors, hamstrings, quads, calves). Foam roll. Protein shake.'},
+    sessions:[
+      {title:'Session A — Posterior Chain Power',type:'home',badge:'home-b',ico:'🏋️',
+       exercises:[
+         {name:'DB Romanian Deadlift',sets:'4',reps:'6',rest:'2 min',note:'Hinge at hip, feel hamstring stretch — hamstring power is king for sprinting'},
+         {name:'DB Split Squat (Bulgarian)',sets:'3',reps:'8/leg',rest:'90 sec',note:'Rear foot elevated; drive through front heel for glute activation'},
+         {name:'DB Single-Leg Hip Thrust',sets:'3',reps:'10/leg',rest:'60 sec',note:'Drive hips to ceiling; squeeze glute at top'},
+         {name:'DB Hang Power Clean',sets:'4',reps:'5',rest:'2 min',note:'Explosive triple extension — mimics sprint drive phase'},
+         {name:'DB Lateral Lunge',sets:'3',reps:'8/leg',rest:'60 sec',note:'Improves hip mobility & lateral power'},
+         {name:'DB Farmer Carry',sets:'3',reps:'30m walk',rest:'60 sec',note:'Grip, core, posture — all critical for sprint mechanics'}
+       ]}
+    ]},
+  2:{ // Tuesday
+    label:'Plyometrics + Gym',emoji:'🏋️',badge:'gym-b',
+    morning:{label:'Morning Jog',desc:'Light jog 10 min — activate without depleting'},
+    practice:{label:'Track Practice 3–4:30PM',desc:'Acceleration mechanics, wicket drills, block starts from various positions'},
+    evening:{label:'GYM SESSION B — Tuesday (6PM start)',desc:'Plyometrics FIRST (fresh CNS = better power), then heavy strength work'},
+    sessions:[
+      {title:'Plyometrics (Before Gym)',type:'plyo',badge:'plyo-b',ico:'⬆️',
+       exercises:[
+         {name:'Ankle Pops (in place)',sets:'3',reps:'20',rest:'45 sec',note:'Fast ground contact time — builds elasticity'},
+         {name:'Broad Jump',sets:'4',reps:'5',rest:'90 sec',note:'Max horizontal distance; full arm swing'},
+         {name:'Bounding (A-run style)',sets:'3',reps:'40m',rest:'2 min',note:'Exaggerated sprint cycle; attack the ground'},
+         {name:'Single-Leg Hop (for distance)',sets:'3',reps:'5/leg',rest:'90 sec',note:'Power & balance — target weak leg'},
+         {name:'Depth Drop to Sprint',sets:'4',reps:'4',rest:'2 min',note:'Step off box, land, sprint immediately 10m — reactive power'},
+         {name:'Tuck Jumps',sets:'3',reps:'8',rest:'60 sec',note:'Hip flexor power and vertical elasticity'}
+       ]},
+      {title:'Gym Day A — Strength Foundation',type:'gym',badge:'gym-b',ico:'🏋️',
+       exercises:[
+         {name:'Barbell Back Squat',sets:'4',reps:'5',rest:'2–3 min',note:'Primary strength builder — go heavy (85–90% 1RM)'},
+         {name:'Trap Bar Deadlift',sets:'4',reps:'4',rest:'3 min',note:'Most sprint-specific pull; maintains upright torso'},
+         {name:'Leg Press (single leg)',sets:'3',reps:'8/leg',rest:'90 sec',note:'Isolate each leg; press through heel'},
+         {name:'Glute-Ham Raise / Nordic Curl',sets:'3',reps:'6',rest:'2 min',note:'CRITICAL — Nordic curls reduce hamstring injury risk dramatically'},
+         {name:'Seated Calf Raise',sets:'4',reps:'15',rest:'60 sec',note:'Soleus strength powers ankle stiffness in sprint contact'},
+         {name:'Cable Pull-Through',sets:'3',reps:'12',rest:'60 sec',note:'Hip hinge pattern; glute + hamstring finishing move'}
+       ]}
+    ]},
+  3:{ // Wednesday
+    label:'Top-End Speed',emoji:'🚀',badge:'track-b',
+    morning:{label:'Session A Morning Lift',desc:'DB Posterior Chain Power circuit (see Monday Session A). Do this before school, 2+ hrs before practice.'},
+    practice:{label:'Track Practice 3–4:30PM',desc:'Flying 30s, max velocity work, stride outs — this is the most important practice of the week'},
+    evening:{label:'Evening Recovery',desc:'Ice bath or contrast shower after practice. Sleep 9+ hours tonight.'},
+    sessions:[
+      {title:'Flying 30s + Max Velocity',type:'track',badge:'track-b',ico:'🏃',
+       exercises:[
+         {name:'Dynamic Warm-Up',sets:'1',reps:'15 min',rest:'—',note:'Arrive 15 min early. A-skips, B-skips, high knees, butt kicks, leg swings, hip circles'},
+         {name:'Flying 30s',sets:'4–6',reps:'30m fly',rest:'Full recovery (3–4 min)',note:'Build-up 30m, fly 30m. Focus on relaxation at max speed, not straining'},
+         {name:'Stride Outs (80–90%)',sets:'4',reps:'60m',rest:'2–3 min',note:'Controlled speed — practice mechanics at near-max velocity'},
+         {name:'Speed Endurance',sets:'2–3',reps:'150–200m',rest:'Full (5–6 min)',note:'Conditioning for the final 40m of your 100. Maintain form when tired'}
+       ]}
+    ]},
+  4:{ // Thursday
+    label:'Strength + Power',emoji:'💥',badge:'gym-b',
+    morning:{label:'Morning Activation',desc:'Activation + mobility work only. No heavy loading before gym night.'},
+    practice:{label:'Track Practice 3–4:30PM',desc:'Start mechanics, reaction drills, short sprints (10–30m), relay exchange practice'},
+    evening:{label:'GYM SESSION B — Thursday (6PM start)',desc:'Plyometrics first (3–4 exercises), then Power & Explosiveness session'},
+    sessions:[
+      {title:'Plyometrics Warm-Up (Before Gym)',type:'plyo',badge:'plyo-b',ico:'⬆️',
+       exercises:[
+         {name:'Ankle Pops',sets:'3',reps:'20',rest:'45 sec',note:'Ground contact time focus'},
+         {name:'Lateral Bounds',sets:'3',reps:'8/side',rest:'60 sec',note:'Glute med strength; hip push-off from lane'},
+         {name:'Box Jump',sets:'3',reps:'5',rest:'90 sec',note:'Land softly; step down not jump down'},
+         {name:'Tuck Jumps',sets:'2',reps:'8',rest:'60 sec',note:'Hip flexor power'}
+       ]},
+      {title:'Gym Day B — Power & Explosiveness',type:'gym',badge:'gym-b',ico:'💥',
+       exercises:[
+         {name:'Power Clean or Hang Clean',sets:'5',reps:'3',rest:'2–3 min',note:'Full Olympic lift — greatest power output per exercise. Go heavy with perfect form.'},
+         {name:'Box Jump (weighted vest opt.)',sets:'4',reps:'5',rest:'2 min',note:'Land softly; step down not jump down'},
+         {name:'Hex Bar Jump Squat',sets:'4',reps:'5',rest:'2 min',note:'Moderate load (40–50% 1RM) for max power output'},
+         {name:'Reverse Hyper / Back Extension',sets:'3',reps:'12',rest:'60 sec',note:'Posterior chain — lower back, glutes'},
+         {name:'Sled Push (heavy)',sets:'4',reps:'20m',rest:'2 min',note:'Sprint-specific: drives acceleration mechanics under load'},
+         {name:'Seated Row',sets:'3',reps:'10',rest:'60 sec',note:'Upper back for sprint posture'}
+       ]}
+    ]},
+  5:{ // Friday
+    label:'Speed + Sharpening',emoji:'🎯',badge:'track-b',
+    morning:{label:'Light Morning Activation',desc:'Light jog 5–10 min + dynamic stretch only. No heavy work before afternoon.'},
+    practice:{label:'Track Practice 3–4:30PM',desc:'Short sprints 10–30m, relay exchange, race simulations — sharpen for any weekend competition'},
+    evening:{label:'Session B Evening Lift',desc:'DB Quad Drive + Upper Body circuit. Foam roll after. In bed by 10PM.'},
+    sessions:[
+      {title:'Session B — Quad Drive + Upper Body',type:'home',badge:'home-b',ico:'💪',
+       exercises:[
+         {name:'DB Goblet Squat',sets:'4',reps:'8',rest:'90 sec',note:'Full depth; keep chest tall and core tight'},
+         {name:'DB Step-Up (explosive)',sets:'4',reps:'6/leg',rest:'90 sec',note:'Drive knee up aggressively at top — like block push-off'},
+         {name:'DB Single-Arm Row',sets:'3',reps:'10/side',rest:'60 sec',note:'Upper back strength counterbalances sprint arm drive'},
+         {name:'DB Overhead Press',sets:'3',reps:'8',rest:'60 sec',note:'Shoulder stability and trunk stiffness'},
+         {name:'DB Tricep Extension',sets:'3',reps:'12',rest:'45 sec',note:'Arm drive power — do not neglect'},
+         {name:'DB Curl to Press',sets:'3',reps:'10',rest:'45 sec',note:'Bicep + shoulder — full arm cycle strength'}
+       ]}
+    ]},
+  6:{ // Saturday
+    label:'Active Recovery',emoji:'🚶',badge:'rest-b',
+    morning:{label:'Easy Movement',desc:'45–60 min easy walk, light bike ride, or casual swim. Heart rate below 120BPM. No intensity.'},
+    practice:{label:'No Practice',desc:'Rest from structured sprinting. Let your CNS recover from the week.'},
+    evening:{label:'Meal Prep + Early Sleep',desc:'Prep lunches and snacks for the week. 8–9 hours sleep.'},
+    sessions:[
+      {title:'Active Recovery (15 min optional)',type:'recovery',badge:'rest-b',ico:'🧘',
+       exercises:[
+         {name:'Ankle Pops',sets:'3',reps:'20',rest:'45 sec',note:'Saturday only — keep it light'},
+         {name:'Broad Jump',sets:'3',reps:'5',rest:'90 sec',note:'Easy effort only — no max jumps today'}
+       ]}
+    ]},
+  0:{ // Sunday
+    label:'Full Rest',emoji:'😴',badge:'rest-b',
+    morning:{label:'REST',desc:'No morning session. Sleep in. Let your body recover.'},
+    practice:{label:'No Practice',desc:'Complete rest. Mental reset for the week ahead.'},
+    evening:{label:'REST',desc:'Prep lunch for Monday. In bed by 9:30PM for Monday practice. 9+ hours of sleep.'},
+    sessions:[]}
+};
+
+const FOOD_DB = {
+  'McDevitt Cafeteria':[
+    {name:'Chicken Caesar Value Meal',cal:380,pro:32,carb:18,fat:16,note:'Mon–Thu anchor meal · $5.00'},
+    {name:'Asian Rice Bowl',cal:420,pro:22,carb:68,fat:8,note:'Wednesday best · $6.95'},
+    {name:'Taco Bar (Chicken)',cal:450,pro:28,carb:52,fat:12,note:'Tuesday best · $6.95'},
+    {name:'Garden Salad + Egg/Feta',cal:180,pro:10,carb:12,fat:9,note:'Friday safe option'},
+    {name:'Tuna Sandwich (whole grain)',cal:320,pro:28,carb:30,fat:8,note:'Pack it Friday'},
+  ],
+  'Protein':[
+    {name:'Chicken Breast (6oz)',cal:280,pro:52,carb:0,fat:6},{name:'Chicken Thigh (skinless)',cal:209,pro:26,carb:0,fat:11},
+    {name:'Salmon Fillet (6oz)',cal:354,pro:48,carb:0,fat:17},{name:'Tilapia (6oz)',cal:218,pro:45,carb:0,fat:4},
+    {name:'Shrimp (4oz)',cal:112,pro:24,carb:0,fat:1},{name:'Baked Cod (6oz)',cal:200,pro:44,carb:0,fat:2},
+    {name:'Turkey Breast (4oz)',cal:120,pro:28,carb:0,fat:1},{name:'Eggs (3 large)',cal:210,pro:18,carb:2,fat:14},
+    {name:'Greek Yogurt plain (6oz)',cal:100,pro:17,carb:6,fat:0},{name:'Protein Powder (1 scoop)',cal:120,pro:25,carb:3,fat:2},
+    {name:'Cottage Cheese (½ cup)',cal:90,pro:13,carb:4,fat:2,note:'Recovery only — not on plan'},
+    {name:'String Cheese',cal:80,pro:7,carb:1,fat:5},
+  ],
+  'Carbs & Grains':[
+    {name:'Brown Rice (1 cup)',cal:216,pro:5,carb:45,fat:2},{name:'White Rice (1 cup)',cal:206,pro:4,carb:45,fat:0,note:'Post-workout'},
+    {name:'Sweet Potato (medium)',cal:103,pro:2,carb:24,fat:0},{name:'Oatmeal (1 cup cooked)',cal:150,pro:5,carb:27,fat:3},
+    {name:'Whole Grain Toast (1 slice)',cal:80,pro:3,carb:15,fat:1},{name:'Whole Wheat Pasta (1 cup)',cal:180,pro:7,carb:37,fat:1},
+    {name:'Banana',cal:105,pro:1,carb:27,fat:0},{name:'Rice Cake',cal:35,pro:1,carb:7,fat:0},
+    {name:'Granola (¼ cup)',cal:120,pro:3,carb:20,fat:4},{name:'Chia Seeds (1 tbsp)',cal:58,pro:2,carb:5,fat:4},
+    {name:'Whole Wheat Tortilla',cal:120,pro:4,carb:22,fat:2},
+  ],
+  'Vegetables':[
+    {name:'Broccoli (1 cup)',cal:55,pro:4,carb:11,fat:1},{name:'Asparagus (1 cup)',cal:27,pro:3,carb:5,fat:0},
+    {name:'Spinach (1 cup raw)',cal:7,pro:1,carb:1,fat:0},{name:'Kale (1 cup)',cal:33,pro:3,carb:6,fat:1},
+    {name:'Brussels Sprouts (1 cup)',cal:56,pro:4,carb:11,fat:1},{name:'Zucchini (1 cup)',cal:20,pro:2,carb:4,fat:0},
+    {name:'Bell Pepper (1 medium)',cal:31,pro:1,carb:7,fat:0},{name:'Cherry Tomatoes (1 cup)',cal:27,pro:1,carb:6,fat:0},
+    {name:'Cauliflower (1 cup)',cal:25,pro:2,carb:5,fat:0},
+  ],
+  'Fruits':[
+    {name:'Apple',cal:95,pro:0,carb:25,fat:0},{name:'Orange',cal:62,pro:1,carb:15,fat:0},
+    {name:'Grapes (1 cup)',cal:104,pro:1,carb:27,fat:0},{name:'Strawberries (1 cup)',cal:49,pro:1,carb:12,fat:0},
+    {name:'Blueberries (½ cup)',cal:42,pro:1,carb:10,fat:0},{name:'Watermelon (1 cup)',cal:46,pro:1,carb:12,fat:0},
+    {name:'Mango (1 cup)',cal:99,pro:1,carb:25,fat:1},{name:'Pineapple (1 cup)',cal:82,pro:1,carb:22,fat:0},
+    {name:'Peach (medium)',cal:58,pro:1,carb:14,fat:0},{name:'Kiwi',cal:42,pro:1,carb:10,fat:0},
+    {name:'Orange Juice (1 cup)',cal:110,pro:2,carb:26,fat:0},
+  ],
+  'Fats':[
+    {name:'Almond Butter (1 tbsp)',cal:98,pro:3,carb:3,fat:9},{name:'Peanut Butter (1 tbsp)',cal:94,pro:4,carb:3,fat:8},
+    {name:'Almonds (1 oz)',cal:164,pro:6,carb:6,fat:14},{name:'Walnuts (1 oz)',cal:185,pro:4,carb:4,fat:18},
+    {name:'Macadamia Nuts (1 oz)',cal:204,pro:2,carb:4,fat:21},{name:'Avocado (½)',cal:120,pro:1,carb:6,fat:11},
+    {name:'Olive Oil (1 tbsp)',cal:119,pro:0,carb:0,fat:14},{name:'Dark Chocolate (2 squares)',cal:100,pro:1,carb:12,fat:6},
+  ],
+  'Drinks':[
+    {name:'Water (8oz)',cal:0,pro:0,carb:0,fat:0},{name:'Gatorade (12oz)',cal:80,pro:0,carb:21,fat:0},
+    {name:'Body Armor (16oz)',cal:90,pro:0,carb:22,fat:0},{name:'Chocolate Milk (8oz)',cal:190,pro:8,carb:30,fat:5},
+    {name:'Orange Juice (8oz)',cal:110,pro:2,carb:26,fat:0},{name:'Whole Milk (8oz)',cal:150,pro:8,carb:12,fat:8},
+    {name:'Protein Shake (ready-made)',cal:160,pro:30,carb:8,fat:3},{name:'Diet Soda (12oz)',cal:0,pro:0,carb:0,fat:0},
+  ],
+  'Breakfast Specials':[
+    {name:'Overnight Oats + Banana',cal:350,pro:14,carb:60,fat:8,note:'Prep Sunday night'},
+    {name:'Avocado Toast + 2 Eggs',cal:440,pro:22,carb:36,fat:22},{name:'Smoothie Bowl',cal:420,pro:20,carb:64,fat:10},
+    {name:'Veggie Omelette (3 eggs)',cal:250,pro:22,carb:6,fat:16},{name:'Whole Grain Pancakes (2)',cal:320,pro:10,carb:56,fat:6},
+    {name:'Green Smoothie',cal:280,pro:18,carb:44,fat:6},
+  ],
+  'Dinner Specials':[
+    {name:'Baked Salmon + Brown Rice',cal:640,pro:56,carb:50,fat:20},{name:'Baked Chicken Thighs + Rice',cal:620,pro:50,carb:58,fat:18},
+    {name:'Sheet Pan Chicken + Sweet Potato',cal:640,pro:52,carb:62,fat:20},{name:'Turkey Meatballs + Pasta',cal:580,pro:44,carb:68,fat:14},
+    {name:'Shrimp Stir Fry + Brown Rice',cal:520,pro:44,carb:60,fat:10},{name:'Baked Cod + Rice + Veg',cal:520,pro:46,carb:54,fat:10},
+  ]
+};
+
+const DRINK_DATA={
+  water:{name:'Water',cal:0,oz:8,color:'#14B8A6',emoji:'💧'},
+  bodyarmor:{name:'Body Armor',cal:90,oz:16,color:'#F97316',emoji:'🏆'},
+  diet:{name:'Diet Drink',cal:2,oz:12,color:'#A855F7',emoji:'🥤'},
+  gatorade:{name:'Gatorade',cal:80,oz:12,color:'#22C55E',emoji:'⚡'},
+  milk:{name:'Milk',cal:120,oz:8,color:'#F1F5F9',emoji:'🥛'},
+  oj:{name:'OJ',cal:110,oz:8,color:'#F0A500',emoji:'🍊'},
+};
+
+const RECOVERY_CHECKLIST = [
+  {id:'sleep',label:'8.5+ hours of sleep',desc:'In bed by 10PM on school nights. Sleep is where speed gains happen.',pts:2},
+  {id:'stretch',label:'10 min post-practice stretch',desc:'Hip flexors, hamstrings, quads, calves — hold each 30+ seconds.',pts:2},
+  {id:'foam',label:'Foam roll (5–10 min)',desc:'Legs before bed on training days. Quads, IT band, calves.',pts:1},
+  {id:'water',label:'100oz water minimum',desc:'Even 2% dehydration kills sprint performance. Hit your water goal.',pts:1},
+  {id:'protein',label:'Post-practice protein shake',desc:'Within 30 min after practice. 25–30g protein + fast carb.',pts:2},
+  {id:'nojunk',label:'No junk food within 3 hrs of practice',desc:'If you ate clean today: check this off.',pts:1},
+  {id:'ice',label:'Ice/contrast therapy (heavy days)',desc:'Cold shower or ice on legs after Tue/Thu gym sessions.',pts:1},
+];
+
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+const MEALS=['breakfast','snack1','lunch','snack2','dinner','evening'];
+let state={}, goals={cal:3200,pro:160,carb:400,fat:90,water:100}, currentDay='';
+let checkState={};
+
+const DAYS_OF_MONTH=[];
+for(let d=4;d<=31;d++){
+  const dt=new Date(2026,2,d);
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  DAYS_OF_MONTH.push({key:`2026-03-${String(d).padStart(2,'0')}`,label:`Mar ${d}`,short:dows[dt.getDay()],isFri:dt.getDay()===5,dow:dt.getDay()});
+}
+
+function getKey(){return currentDay;}
+function getDay(k){
+  if(!state[k])state[k]={meals:{breakfast:[],snack1:[],lunch:[],snack2:[],dinner:[],evening:[]},drinks:[],notes:''};
+  return state[k];
+}
+function saveState(){try{localStorage.setItem('sprintFuelV3',JSON.stringify({state,goals,checkState}));}catch(e){}}
+function loadState(){
+  try{
+    const d=JSON.parse(localStorage.getItem('sprintFuelV3')||'null');
+    if(d){state=d.state||{};goals=d.goals||goals;checkState=d.checkState||{};}
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════════════
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='mealplan') renderMealPlan();
+  if(name==='training') renderTrainingTab();
+}
+
+// ══════════════════════════════════════════════════════
+//  DAY NAV
+// ══════════════════════════════════════════════════════
+function buildNav(){
+  const nav=document.getElementById('dayNav');
+  nav.innerHTML=DAYS_OF_MONTH.map(d=>`
+    <button class="day-btn${d.isFri?' fri':''} ${d.key===currentDay?'active':''} ${state[d.key]?'has-data':''}"
+      id="navbtn-${d.key}" onclick="switchDay('${d.key}')">
+      ${d.short} ${d.label.split(' ')[1]}
+    </button>`).join('');
+}
+function switchDay(key){
+  currentDay=key;
+  buildNav();
+  renderAll();
+  const dt=new Date(2026,2,parseInt(key.split('-')[2]));
+  const dows=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('headerDate').textContent=`${dows[dt.getDay()]}, March ${dt.getDate()}`;
+  updateHeaderSub(dt.getDay());
+  const btn=document.getElementById('navbtn-'+key);
+  if(btn)btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+}
+function updateHeaderSub(dow){
+  const subs={1:'Speed Endurance · Track 3–4:30PM',2:'Plyos + Gym Night · Track 3–4:30PM',
+    3:'Top-End Speed · Flying 30s · Track 3–4:30PM',4:'Strength + Power · Gym Night · Track 3–4:30PM',
+    5:'Speed + Sharpening · Track 3–4:30PM',6:'Active Recovery Day',0:'Full Rest Day'};
+  document.getElementById('headerSub').textContent=subs[dow]||'Track Practice 3–4:30PM';
+}
+
+// ══════════════════════════════════════════════════════
+//  TODAY BANNER
+// ══════════════════════════════════════════════════════
+function renderTodayBanner(){
+  const day=parseInt(currentDay.split('-')[2]);
+  const mp=MEAL_PLAN.find(d=>parseInt(d.date.split(' ')[1])===day);
+  const dt=new Date(2026,2,day);
+  const dow=dt.getDay();
+  const sched=TRAINING_SCHEDULE[dow];
+  if(!mp){
+    document.getElementById('todayName').textContent=dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    document.getElementById('todayTip').textContent='';
+    document.getElementById('todayBadges').innerHTML='';
+    return;
+  }
+  document.getElementById('todayName').textContent=mp.breakfast.name;
+  document.getElementById('todayTip').textContent=mp.tip||'';
+  const badges=[];
+  if(sched&&dow!==0&&dow!==6) badges.push(`<span class="tbadge tbadge-track">🏃 ${sched.label}</span>`);
+  if(dow===2||dow===4) badges.push(`<span class="tbadge tbadge-gym">🏋️ Gym Tonight</span>`);
+  if(mp.type==='fri') badges.push(`<span class="tbadge tbadge-fri">✝️ No Meat Friday</span>`);
+  if(dow===6) badges.push(`<span class="tbadge tbadge-rest">🚶 Active Recovery</span>`);
+  if(dow===0) badges.push(`<span class="tbadge tbadge-rest">😴 Full Rest Day</span>`);
+  document.getElementById('todayBadges').innerHTML=badges.join('');
+}
+
+// ══════════════════════════════════════════════════════
+//  MEAL SUGGESTIONS
+// ══════════════════════════════════════════════════════
+function renderMealSuggestions(){
+  const day=parseInt(currentDay.split('-')[2]);
+  const mp=MEAL_PLAN.find(d=>parseInt(d.date.split(' ')[1])===day);
+  if(!mp) return;
+  // Breakfast suggestion
+  if(mp.breakfast) showSuggestion('breakfast',mp.breakfast.icon,mp.breakfast.name,mp.breakfast.desc,mp.breakfast.cal,mp.breakfast.pro,mp.breakfast.carb,mp.breakfast.fat);
+  // Lunch suggestion
+  if(mp.lunch&&mp.lunch.go) showSuggestion('lunch','🥗',mp.lunch.go.name,mp.lunch.go.desc,mp.lunch.go.cal,mp.lunch.go.pro,mp.lunch.go.carb,mp.lunch.go.fat);
+  // Dinner suggestion
+  if(mp.dinner) showSuggestion('dinner',mp.dinner.icon,mp.dinner.name,mp.dinner.desc,mp.dinner.cal,mp.dinner.pro,mp.dinner.carb,mp.dinner.fat);
+  // Snack 1
+  if(mp.snack1) showSuggestionSimple('snack1','🍎',mp.snack1.name,mp.snack1.desc);
+  // Snack 2 (pre-practice)
+  if(mp.snack2) showSuggestionSimple('snack2','⚡',mp.snack2.name,mp.snack2.desc);
+}
+function showSuggestion(meal,icon,name,desc,cal,pro,carb,fat){
+  const el=document.getElementById('sug-'+meal);
+  if(!el) return;
+  const c=cal||0,p=pro||0,cb=carb||0,f=fat||0;
+  el.style.display='flex';
+  el.innerHTML=`<span class="sug-ico">${icon}</span><div class="sug-body"><div class="sug-label">TODAY'S SUGGESTION</div><div class="sug-name">${name}</div><div class="sug-desc">${desc}${c?` · ${c} cal · P:${p}g C:${cb}g F:${f}g`:''}</div></div>${c?`<button class="sug-add-btn" onclick="quickAdd('${meal}','${name.replace(/'/g,"\\'")}',${c},${p},${cb},${f})">+ Add</button>`:''}`;
+}
+function showSuggestionSimple(meal,icon,name,desc){
+  const el=document.getElementById('sug-'+meal);
+  if(!el) return;
+  el.style.display='flex';
+  el.innerHTML=`<span class="sug-ico">${icon}</span><div class="sug-body"><div class="sug-label">TODAY'S SUGGESTION</div><div class="sug-name">${name}</div><div class="sug-desc">${desc}</div></div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  MEALS
+// ══════════════════════════════════════════════════════
+function addFood(meal){
+  const name=document.getElementById('fi-'+meal).value.trim();
+  const cal=parseFloat(document.getElementById('cal-'+meal).value)||0;
+  const pro=parseFloat(document.getElementById('pro-'+meal).value)||0;
+  const carb=parseFloat(document.getElementById('carb-'+meal).value)||0;
+  const fat=parseFloat(document.getElementById('fat-'+meal).value)||0;
+  if(!name){document.getElementById('fi-'+meal).focus();return;}
+  getDay(getKey()).meals[meal].push({name,cal,pro,carb,fat,id:Date.now()});
+  saveState(); clearInputs(meal); renderMeal(meal); updateTotals();
+  showToast(`✓ Added: ${name}`);
+}
+function quickAdd(meal,name,cal,pro,carb,fat){
+  getDay(getKey()).meals[meal].push({name,cal,pro,carb,fat,id:Date.now()});
+  saveState(); renderMeal(meal); updateTotals();
+  showToast(`✓ ${name}`);
+}
+function removeFood(meal,id){
+  const d=getDay(getKey());
+  d.meals[meal]=d.meals[meal].filter(f=>f.id!==id);
+  saveState(); renderMeal(meal); updateTotals();
+}
+function clearInputs(meal){
+  ['fi','cal','pro','carb','fat'].forEach(f=>{document.getElementById(f+'-'+meal).value='';});
+  document.getElementById('fi-'+meal).focus();
+}
+function enterAdd(e,meal){if(e.key==='Enter')addFood(meal);}
+function renderMeal(meal){
+  const items=getDay(getKey()).meals[meal];
+  const tot=items.reduce((s,f)=>s+f.cal,0);
+  document.getElementById('sum-'+meal).textContent=`${items.length} item${items.length!==1?'s':''} · ${tot} cal`;
+  document.getElementById('badge-'+meal).textContent=tot;
+  document.getElementById('rows-'+meal).innerHTML=items.map(f=>`
+    <tr class="food-row">
+      <td class="food-name-cell">${f.name}</td>
+      <td class="right food-cal-cell">${f.cal}</td>
+      <td class="right food-macro-cell">${f.pro}g</td>
+      <td class="right food-macro-cell">${f.carb}g</td>
+      <td class="right food-macro-cell">${f.fat}g</td>
+      <td><button class="del-btn" onclick="removeFood('${meal}',${f.id})">✕</button></td>
+    </tr>`).join('');
+}
+function toggleMeal(meal){
+  const body=document.getElementById('body-'+meal);
+  const tog=document.getElementById('tog-'+meal);
+  const isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+  tog.classList.toggle('open',!isOpen);
+}
+function toggleGoals(){
+  const body=document.getElementById('body-goals');
+  const tog=document.getElementById('tog-goals');
+  const isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+  tog.classList.toggle('open',!isOpen);
+}
+
+// ══════════════════════════════════════════════════════
+//  DRINKS
+// ══════════════════════════════════════════════════════
+function addDrink(type){
+  const info=DRINK_DATA[type];
+  getDay(getKey()).drinks.push({type,name:info.name,cal:info.cal,oz:info.oz,emoji:info.emoji,id:Date.now()});
+  saveState(); renderDrinks(); updateTotals();
+  showToast(`${info.emoji} ${info.name} logged`);
+}
+function addCustomDrink(){
+  const name=prompt('Drink name:','');
+  if(!name)return;
+  const cal=parseInt(prompt('Calories:','0'))||0;
+  const oz=parseInt(prompt('Ounces:','8'))||8;
+  getDay(getKey()).drinks.push({type:'custom',name,cal,oz,emoji:'🧃',id:Date.now()});
+  saveState(); renderDrinks(); updateTotals();
+  showToast(`Added: ${name}`);
+}
+function removeDrink(id){
+  const d=getDay(getKey());
+  d.drinks=d.drinks.filter(dr=>dr.id!==id);
+  saveState(); renderDrinks(); updateTotals();
+}
+function renderDrinks(){
+  const d=getDay(getKey());
+  const log=document.getElementById('drinkLog');
+  if(!d.drinks.length){log.innerHTML='<span class="drink-log-empty">Tap a drink above to log it · click chips to remove</span>';
+  }else{
+    const colorMap={water:'rgba(20,184,166,.2)',bodyarmor:'rgba(249,115,22,.2)',diet:'rgba(168,85,247,.2)',gatorade:'rgba(34,197,94,.2)',milk:'rgba(241,245,249,.1)',oj:'rgba(240,165,0,.2)',custom:'rgba(59,130,246,.2)'};
+    log.innerHTML=d.drinks.map(dr=>`<div class="drink-chip" style="background:${colorMap[dr.type]||colorMap.custom};" onclick="removeDrink(${dr.id})">${dr.emoji} ${dr.name} <span class="chip-x">✕</span></div>`).join('');
+  }
+  const waterOz=d.drinks.filter(dr=>dr.type==='water').reduce((s,dr)=>s+dr.oz,0);
+  const pct=Math.min(100,(waterOz/goals.water)*100);
+  document.getElementById('waterBar').style.width=pct+'%';
+  document.getElementById('waterLabel').textContent=`${waterOz} / ${goals.water}oz`;
+}
+
+// ══════════════════════════════════════════════════════
+//  TOTALS
+// ══════════════════════════════════════════════════════
+function updateTotals(){
+  const d=getDay(getKey());
+  let cal=0,pro=0,carb=0,fat=0;
+  MEALS.forEach(m=>d.meals[m].forEach(f=>{cal+=f.cal;pro+=f.pro;carb+=f.carb;fat+=f.fat;}));
+  d.drinks.forEach(dr=>{cal+=dr.cal;});
+  const waterOz=d.drinks.filter(dr=>dr.type==='water').reduce((s,dr)=>s+dr.oz,0);
+  document.getElementById('totalCal').textContent=cal;
+  document.getElementById('totalPro').textContent=pro;
+  document.getElementById('totalCarb').textContent=carb;
+  document.getElementById('totalFat').textContent=fat;
+  document.getElementById('s-cal').textContent=cal;
+  document.getElementById('s-pro').textContent=pro+'g';
+  document.getElementById('s-carb').textContent=carb+'g';
+  document.getElementById('s-fat').textContent=fat+'g';
+  document.getElementById('s-water').textContent=waterOz+'oz';
+  document.getElementById('s-drinks').textContent=d.drinks.length;
+  const C=132;
+  function setRing(id,val,goal,suffix){
+    const pct=Math.min(1,goal>0?val/goal:0);
+    document.getElementById('ring'+suffix).style.strokeDashoffset=C*(1-pct);
+    document.getElementById('pct'+suffix).textContent=Math.round(pct*100)+'%';
+    document.getElementById('goal'+suffix+'Label').textContent=`Goal: ${goal}${suffix==='Cal'?'':suffix==='Pro'?'g':'g'}`;
+  }
+  setRing('ringCal',cal,goals.cal,'Cal');
+  setRing('ringPro',pro,goals.pro,'Pro');
+  setRing('ringCarb',carb,goals.carb,'Carb');
+  setRing('ringFat',fat,goals.fat,'Fat');
+  function setBar(id,val,goal,label,unit=''){
+    const pct=Math.min(110,goal>0?(val/goal)*100:0);
+    const el=document.getElementById(id);
+    el.style.width=Math.min(100,pct)+'%';
+    el.className='prog-fill '+(id.includes('cal')?'cal':id.includes('pro')?'pro':id.includes('carb')?'carb':'fat')+(pct>100?' over':'');
+    document.getElementById('gn-'+label).textContent=`${val} / ${goal}${unit}`;
+  }
+  setBar('gp-cal',cal,goals.cal,'cal','');
+  setBar('gp-pro',pro,goals.pro,'pro','g');
+  setBar('gp-carb',carb,goals.carb,'carb','g');
+  setBar('gp-fat',fat,goals.fat,'fat','g');
+  document.getElementById('gn-cal').textContent=`${cal} / ${goals.cal}`;
+  document.getElementById('gn-pro').textContent=`${pro} / ${goals.pro}g`;
+  document.getElementById('gn-carb').textContent=`${carb} / ${goals.carb}g`;
+  document.getElementById('gn-fat').textContent=`${fat} / ${goals.fat}g`;
+  const calPct=goals.cal>0?cal/goals.cal:0;
+  const proPct=goals.pro>0?pro/goals.pro:0;
+  const sb=document.getElementById('statusBanner');
+  const sm=document.getElementById('statusMsg');
+  if(cal===0){sb.className='status-banner warn';sm.textContent='Start logging your meals to see your athlete status!';}
+  else if(calPct<0.5){sb.className='status-banner low';sm.textContent=`⚠️ Only ${cal} cal logged — you need ${goals.cal-cal} more calories. Undereating = slow legs.`;}
+  else if(proPct<0.6){sb.className='status-banner warn';sm.textContent=`💪 Protein is low (${pro}g / ${goals.pro}g). Add protein at your next meal.`;}
+  else if(calPct>=0.9&&proPct>=0.85){sb.className='status-banner ok';sm.textContent=`🔥 Fueled like an athlete! Calories: ${cal} · Protein: ${pro}g — you're ready to run fast.`;}
+  else{sb.className='status-banner warn';sm.textContent=`📊 ${cal} cal / ${pro}g protein logged — keep going to hit your goals.`;}
+}
+
+// ══════════════════════════════════════════════════════
+//  GOALS
+// ══════════════════════════════════════════════════════
+function loadGoalsUI(){
+  document.getElementById('g-cal').value=goals.cal;
+  document.getElementById('g-pro').value=goals.pro;
+  document.getElementById('g-carb').value=goals.carb;
+  document.getElementById('g-fat').value=goals.fat;
+  document.getElementById('g-water').value=goals.water;
+}
+function saveGoals(){
+  goals.cal=parseInt(document.getElementById('g-cal').value)||3200;
+  goals.pro=parseInt(document.getElementById('g-pro').value)||160;
+  goals.carb=parseInt(document.getElementById('g-carb').value)||400;
+  goals.fat=parseInt(document.getElementById('g-fat').value)||90;
+  goals.water=parseInt(document.getElementById('g-water').value)||100;
+  saveState(); updateTotals(); renderDrinks();
+  showToast('✓ Goals saved!');
+  document.getElementById('body-goals').style.display='none';
+}
+function resetDay(){
+  if(!confirm('Reset all food and drinks logged today?'))return;
+  delete state[currentDay];
+  saveState(); renderAll();
+  showToast('🗑 Today reset');
+}
+
+// ══════════════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════════════
+function renderAll(){
+  MEALS.forEach(m=>renderMeal(m));
+  renderDrinks();
+  updateTotals();
+  renderTodayBanner();
+  renderMealSuggestions();
+}
+
+// ══════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ══════════════════════════════════════════════════════
+//  FOOD DATABASE MODAL
+// ══════════════════════════════════════════════════════
+let dbMealTarget='breakfast';
+let dbCategory='McDevitt Cafeteria';
+function openFoodDB(){
+  document.getElementById('foodModal').classList.add('open');
+  buildCatTabs();
+  renderFoodList();
+}
+function closeFoodDB(){document.getElementById('foodModal').classList.remove('open');}
+function handleOverlayClick(e){if(e.target===document.getElementById('foodModal'))closeFoodDB();}
+function selectMealTarget(btn){
+  dbMealTarget=btn.dataset.meal;
+  document.querySelectorAll('.meal-sel-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function buildCatTabs(){
+  const cats=Object.keys(FOOD_DB);
+  document.getElementById('catTabs').innerHTML=cats.map(c=>`<button class="cat-tab${c===dbCategory?' active':''}" onclick="setCategory('${c}',this)">${c}</button>`).join('');
+}
+function setCategory(cat,btn){
+  dbCategory=cat;
+  document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dbSearchInput').value='';
+  document.getElementById('aiPanel').style.display='none';
+  renderFoodList();
+}
+function filterFoods(){
+  const q=document.getElementById('dbSearchInput').value.toLowerCase();
+  if(!q){renderFoodList();return;}
+  const all=Object.values(FOOD_DB).flat();
+  const res=all.filter(f=>f.name.toLowerCase().includes(q));
+  document.getElementById('foodList').innerHTML=res.length?
+    res.map(f=>foodItemHTML(f)).join(''):`<div class="no-results">No results for "${q}". Try AI Search ✨</div>`;
+}
+function renderFoodList(){
+  const items=FOOD_DB[dbCategory]||[];
+  document.getElementById('foodList').innerHTML=items.map(f=>foodItemHTML(f)).join('');
+}
+function foodItemHTML(f){
+  return`<div class="food-db-item" onclick="addFromDB('${f.name.replace(/'/g,"\\'")}',${f.cal},${f.pro||0},${f.carb||0},${f.fat||0})">
+    <div><div class="fdi-name">${f.name}</div><div class="fdi-macros">P:${f.pro||0}g · C:${f.carb||0}g · F:${f.fat||0}g${f.note?` · ${f.note}`:''}</div></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="fdi-cal">${f.cal}</span>
+      <button class="food-db-add" onclick="event.stopPropagation();addFromDB('${f.name.replace(/'/g,"\\'")}',${f.cal},${f.pro||0},${f.carb||0},${f.fat||0})">+</button>
+    </div>
+  </div>`;
+}
+function addFromDB(name,cal,pro,carb,fat){
+  quickAdd(dbMealTarget,name,cal,pro,carb,fat);
+}
+function searchKeydown(e){if(e.key==='Enter')aiSearch();}
+async function aiSearch(){
+  const q=document.getElementById('dbSearchInput').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('aiSearchBtn');
+  const panel=document.getElementById('aiPanel');
+  btn.disabled=true; btn.innerHTML='<span class="btn-ico">⏳</span> Searching…';
+  panel.style.display='block';
+  panel.innerHTML='<div class="ai-status">✨ Searching with AI…</div>';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:API_HEADERS,
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:`You are a nutrition database. Return ONLY a valid JSON array (no markdown) of 1-4 matching foods with accurate nutritional info. Format: [{"name":"Food (serving)","cal":0,"pro":0,"carb":0,"fat":0,"serving":"description","note":"context"}]. Use realistic USDA values. Return ONLY the JSON array.`,
+        messages:[{role:'user',content:`Find nutrition for: "${q}". Return JSON array only.`}]})
+    });
+    const data=await res.json();
+    const raw=data.content?.[0]?.text||'[]';
+    let results;
+    try{results=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){results=[];}
+    if(!results.length){
+      panel.innerHTML=`<div class="ai-status">✨ AI Search</div><div class="no-results">No results for "${q}". Try different keywords.</div>`;
+    }else{
+      panel.innerHTML=`<div class="ai-status">✨ AI found ${results.length} result${results.length>1?'s':''} for "${q}"</div>`+
+        results.map(r=>`<div class="ai-result-item" onclick="addAIResult('${(r.name||'').replace(/'/g,"\\'")}',${r.cal||0},${r.pro||0},${r.carb||0},${r.fat||0})">
+          <div><div class="ai-res-name">${r.name}</div><div class="ai-res-macros">P:${r.pro||0}g · C:${r.carb||0}g · F:${r.fat||0}g · ${r.serving||''}</div>${r.note?`<div class="ai-res-macros" style="color:#818CF8">${r.note}</div>`:''}</div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="ai-res-cal">${r.cal||0}</span><button class="food-db-add" onclick="event.stopPropagation();addAIResult('${(r.name||'').replace(/'/g,"\\'")}',${r.cal||0},${r.pro||0},${r.carb||0},${r.fat||0})">+</button></div>
+        </div>`).join('');
+    }
+  }catch(err){
+    panel.innerHTML=`<div class="ai-status" style="color:#FCA5A5;">Search error — check connection.</div>`;
+  }
+  btn.disabled=false;btn.innerHTML='<span class="btn-ico">✨</span> AI Search';
+}
+function addAIResult(name,cal,pro,carb,fat){quickAdd(dbMealTarget,name,cal,pro,carb,fat);}
+
+// ══════════════════════════════════════════════════════
+//  TRAINING TAB
+// ══════════════════════════════════════════════════════
+function renderTrainingTab(){
+  const dt=new Date(2026,2,parseInt(currentDay.split('-')[2]));
+  const dow=dt.getDay();
+  const sched=TRAINING_SCHEDULE[dow];
+  document.getElementById('workoutTitle').textContent=sched?`${sched.emoji} ${sched.label}`:'Rest Day';
+  document.getElementById('workoutSub').textContent=sched?sched.practice.desc:'Full rest — sleep 9+ hours and eat well.';
+  renderScheduleGrid(dow);
+  renderTodayWorkoutDetail(sched,dow);
+}
+function renderScheduleGrid(todayDow){
+  const days=[{d:1,n:'MON',e:'⚡',l:'Speed'},{d:2,n:'TUE',e:'🏋️',l:'Gym A'},{d:3,n:'WED',e:'🚀',l:'Flying 30s'},{d:4,n:'THU',e:'💥',l:'Gym B'},{d:5,n:'FRI',e:'🎯',l:'Sharp'},{d:6,n:'SAT',e:'🚶',l:'Recovery'},{d:0,n:'SUN',e:'😴',l:'Rest'}];
+  document.getElementById('scheduleGrid').innerHTML=days.map(d=>`
+    <div class="sched-cell ${d.d===todayDow||d.d===todayDow?d.d===todayDow?'today-cell':'':''}">
+      <div class="sched-day">${d.n}</div>
+      <div class="sched-ico">${d.e}</div>
+      <div class="sched-label">${d.l}</div>
+    </div>`).join('');
+}
+function renderTodayWorkoutDetail(sched,dow){
+  const el=document.getElementById('todayWorkoutDetail');
+  if(!sched||dow===0){el.innerHTML='<div class="principles-card" style="text-align:center;padding:30px;"><div style="font-size:48px;margin-bottom:12px;">😴</div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;letter-spacing:2px;color:var(--gold2);">FULL REST DAY</div><div style="color:var(--muted2);margin-top:8px;font-size:13px;">Sleep 9+ hours. Prep lunch for tomorrow. Mental reset.</div></div>';return;}
+  let html=`<div class="workout-tip"><strong>Morning:</strong> ${sched.morning.desc}</div>`;
+  html+=`<div class="workout-tip"><strong>Practice 3–4:30PM:</strong> ${sched.practice.desc}</div>`;
+  html+=`<div class="workout-tip"><strong>Evening:</strong> ${sched.evening.desc}</div>`;
+  sched.sessions.forEach((session,idx)=>{
+    const bodyId=`wcbody-${dow}-${idx}`;
+    const chevId=`wcchev-${dow}-${idx}`;
+    html+=`<div class="workout-card">
+      <div class="wc-header" onclick="toggleWorkoutCard('${bodyId}','${chevId}')">
+        <div class="wc-hdr-left">
+          <div class="wc-icon ${session.type}">${session.ico}</div>
+          <div><div class="wc-title">${session.title}</div><div class="wc-sub">Tap to expand exercises</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="wc-badge ${session.badge}">${session.type.toUpperCase()}</span>
+          <span class="wc-chevron" id="${chevId}">▾</span>
+        </div>
+      </div>
+      <div class="wc-body" id="${bodyId}">
+        <table class="exercise-table">
+          <thead><tr><th style="width:38%">Exercise</th><th>Sets</th><th>Reps</th><th>Rest</th></tr></thead>
+          <tbody>${session.exercises.map(ex=>`
+            <tr>
+              <td><div class="ex-name">${ex.name}</div><div class="ex-note">${ex.note}</div></td>
+              <td><div class="ex-sets">${ex.sets}</div></td>
+              <td><div class="ex-reps">${ex.reps}</div></td>
+              <td><div class="ex-rest">${ex.rest}</div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function toggleWorkoutCard(bodyId,chevId){
+  const body=document.getElementById(bodyId);
+  const chev=document.getElementById(chevId);
+  if(!body)return;
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  if(chev)chev.classList.toggle('open',!isOpen);
+}
+
+// ══════════════════════════════════════════════════════
+//  MEAL PLAN TAB
+// ══════════════════════════════════════════════════════
+function renderMealPlan(){
+  const el=document.getElementById('mealPlanContent');
+  const weekLabels={1:'Week 1 — March 4–8',2:'Week 2 — March 9–15',3:'Week 3 — March 16–22',4:'Week 4 — March 23–29',5:'Week 5 — March 30–31'};
+  const weeks={};
+  MEAL_PLAN.forEach(d=>{if(!weeks[d.week])weeks[d.week]=[];weeks[d.week].push(d);});
+  let html='';
+  for(let w=1;w<=5;w++){
+    if(!weeks[w])continue;
+    html+=`<div class="mp-week-label">${weekLabels[w]}</div>`;
+    weeks[w].forEach(day=>{
+      const isFri=day.type==='fri';
+      const isWknd=day.type==='wknd';
+      const dayNum=parseInt(day.date.split(' ')[1]);
+      const isToday=`2026-03-${String(dayNum).padStart(2,'0')}`===currentDay;
+      html+=`<div class="mp-day-card${isFri?' friday':isWknd?' weekend':''}${isToday?' today-cell':''}">
+        <div class="mp-day-hdr" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div>
+            <div class="mp-day-name" style="color:${isToday?'var(--gold)':'var(--text)'}">${day.dow}${isToday?' ← TODAY':''}</div>
+            <div class="mp-day-date">${day.date}</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${isFri?'<span class="mp-badge fri-b">✝️ No Meat</span>':''}
+            ${isWknd?'<span class="mp-badge wknd-b">🏠 Home</span>':''}
+            <span style="color:var(--muted);font-size:14px;">▾</span>
+          </div>
+        </div>
+        <div class="mp-body">
+          <div class="mp-meals-grid">
+            <div class="mp-meal-col">
+              <div class="mp-meal-label">🌅 BREAKFAST</div>
+              ${day.breakfast?`<div class="mp-meal-item go">
+                <div style="font-size:20px;margin-bottom:4px;">${day.breakfast.icon}</div>
+                <div class="mp-item-name">${day.breakfast.name}</div>
+                <div class="mp-item-desc">${day.breakfast.desc}</div>
+                ${day.breakfast.cal?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">~${day.breakfast.cal} cal · P:${day.breakfast.pro}g</div>`:''}
+              </div>`:''}
+            </div>
+            <div class="mp-meal-col">
+              <div class="mp-meal-label">🥗 LUNCH</div>
+              ${day.lunch?renderMPLunch(day.lunch,isFri):''}
+            </div>
+            <div class="mp-meal-col">
+              <div class="mp-meal-label">🍽 DINNER</div>
+              ${day.dinner?`<div class="mp-meal-item ${isFri?'fri-ok':'go'}">
+                <div style="font-size:20px;margin-bottom:4px;">${day.dinner.icon}</div>
+                <div class="mp-item-name">${day.dinner.name}</div>
+                <div class="mp-item-desc">${day.dinner.desc}</div>
+                ${day.dinner.cal?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">~${day.dinner.cal} cal · P:${day.dinner.pro}g</div>`:''}
+              </div>`:''}
+            </div>
+          </div>
+          ${day.snack1||day.snack2?`<div class="mp-snacks">
+            ${day.snack1?`<div class="mp-snack fruit"><span class="mp-snack-ico">🍎</span><div><div class="mp-snack-label">FRESH SNACK</div><div class="mp-snack-name">${day.snack1.name}</div><div class="mp-snack-desc">${day.snack1.desc}</div></div></div>`:''}
+            ${day.snack2?`<div class="mp-snack organic"><span class="mp-snack-ico">🌿</span><div><div class="mp-snack-label org">ORGANIC SNACK</div><div class="mp-snack-name">${day.snack2.name}</div><div class="mp-snack-desc">${day.snack2.desc}</div></div></div>`:''}
+          </div>`:''}
+          ${day.tip?`<div class="mp-tip">${isFri?'⚠️ <strong>Friday heads up:</strong>':'💡 <strong>Tip:</strong>'} ${day.tip}</div>`:''}
+          <button class="use-plan-btn" onclick="useMealPlan(${dayNum});event.stopPropagation()">📋 Load ${day.dow}'s suggestions into tracker</button>
+        </div>
+      </div>`;
+    });
+  }
+  el.innerHTML=html;
+}
+function renderMPLunch(lunch,isFri){
+  let h='';
+  if(lunch.note)h+=`<div class="mp-meal-item" style="font-style:italic;"><div class="mp-item-desc">${lunch.note}</div></div>`;
+  if(lunch.go){
+    const tags=(lunch.go.tags||[]).map(t=>`<span class="mp-tag ${t}">${t==='go'?'GO':t==='best'?'BEST':t==='val'?'VALUE':t==='fri'?'FRI OK':t.toUpperCase()}</span>`).join('');
+    h+=`<div class="mp-meal-item go">
+      <div style="display:flex;justify-content:space-between;"><div class="mp-item-name">${lunch.go.name}</div>${lunch.go.price?`<div class="mp-item-price">${lunch.go.price}</div>`:''}</div>
+      <div>${tags}</div>
+      <div class="mp-item-desc">${lunch.go.desc}</div>
+      ${lunch.go.cal?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">~${lunch.go.cal} cal · P:${lunch.go.pro}g</div>`:''}
+    </div>`;
+  }
+  if(lunch.alt){
+    h+=`<div class="mp-meal-item" style="opacity:.8;">
+      <div class="mp-item-name" style="font-size:11px;">${lunch.alt.name} <span style="color:var(--gold);">${lunch.alt.price||''}</span></div>
+      <div class="mp-item-desc">${lunch.alt.desc}</div>
+    </div>`;
+  }
+  if(lunch.avoid){
+    h+=`<div class="mp-meal-item avoid">
+      <div class="mp-item-name strike">${lunch.avoid.name}</div>
+      <div class="mp-item-desc">${lunch.avoid.reason}</div>
+    </div>`;
+  }
+  if(lunch.pack){
+    h+=`<div class="mp-meal-item pack">
+      <span class="mp-tag pack">PACK IT</span>
+      <div class="mp-item-name">${lunch.pack.name}</div>
+      <div class="mp-item-desc">${lunch.pack.desc}</div>
+    </div>`;
+  }
+  return h;
+}
+function useMealPlan(dayNum){
+  const key=`2026-03-${String(dayNum).padStart(2,'0')}`;
+  const mp=MEAL_PLAN.find(d=>parseInt(d.date.split(' ')[1])===dayNum);
+  if(!mp)return;
+  switchDay(key);
+  switchTab('nutrition',document.querySelector('.tab-btn'));
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{if(i===0)b.classList.add('active');else b.classList.remove('active');});
+  document.getElementById('tab-nutrition').classList.add('active');
+  document.getElementById('tab-training').classList.remove('active');
+  document.getElementById('tab-mealplan').classList.remove('active');
+  document.getElementById('tab-recovery').classList.remove('active');
+  showToast(`📋 Switched to ${mp.dow}'s plan`);
+}
+
+// ══════════════════════════════════════════════════════
+//  RECOVERY TAB
+// ══════════════════════════════════════════════════════
+function renderChecklist(){
+  const key=currentDay;
+  if(!checkState[key])checkState[key]={};
+  const el=document.getElementById('checklistItems');
+  el.innerHTML=RECOVERY_CHECKLIST.map(item=>`
+    <div class="check-item" onclick="toggleCheck('${key}','${item.id}')">
+      <div class="check-box ${checkState[key][item.id]?'checked':''}" id="cb-${item.id}"></div>
+      <div>
+        <div class="check-label">${item.label} <span style="color:var(--muted);font-size:10px;font-weight:600;">(${item.pts}pt${item.pts>1?'s':''})</span></div>
+        <div class="check-desc">${item.desc}</div>
+      </div>
+    </div>`).join('');
+  updateRecoveryScore(key);
+}
+function toggleCheck(key,id){
+  if(!checkState[key])checkState[key]={};
+  checkState[key][id]=!checkState[key][id];
+  document.getElementById('cb-'+id).className='check-box'+(checkState[key][id]?' checked':'');
+  saveState();
+  updateRecoveryScore(key);
+}
+function updateRecoveryScore(key){
+  const checks=checkState[key]||{};
+  const total=RECOVERY_CHECKLIST.reduce((s,i)=>s+(checks[i.id]?i.pts:0),0);
+  const max=RECOVERY_CHECKLIST.reduce((s,i)=>s+i.pts,0);
+  document.getElementById('recoveryScore').textContent=total;
+  document.getElementById('recoveryBar').style.width=Math.round((total/max)*100)+'%';
+  const msgs={0:'Complete your checklist to earn recovery points',3:'Good start — hit your sleep and protein to maximize gains',6:'Solid recovery day. Your muscles are rebuilding.',8:'Outstanding recovery! You\'ll feel this in tomorrow\'s sprint times.',10:'🔥 PERFECT RECOVERY DAY. Maximum adaptation. Run fast tomorrow.'};
+  const key2=Object.keys(msgs).filter(k=>parseInt(k)<=total).pop();
+  document.getElementById('recoveryMsg').textContent=msgs[key2];
+}
+
+// ══════════════════════════════════════════════════════
+//  API CONFIG — Set your Anthropic API key here
+//  OR deploy with a proxy server (see README)
+// ══════════════════════════════════════════════════════
+const ANTHROPIC_API_KEY = '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'; // Add your key: 'sk-ant-...'
+const API_HEADERS = {
+  'Content-Type': 'application/json',
+  ...(ANTHROPIC_API_KEY ? {
+    'x-api-key': ANTHROPIC_API_KEY,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true'
+  } : {})
+};
+
+
+// ══════════════════════════════════════════════════════
+let topAiMealTarget='breakfast';
+async function topAiSearch(){
+  const q=document.getElementById('topAiInput').value.trim();
+  if(!q)return;
+  const btn=document.getElementById('topAiBtn');
+  const panel=document.getElementById('topAiResults');
+  btn.disabled=true; btn.textContent='Searching…';
+  panel.style.display='block'; panel.classList.add('show');
+  panel.innerHTML=`<div class="ai-status" style="color:#818CF8;font-size:12px;font-weight:800;padding:8px 0;">✨ Searching for "${q}"…</div>`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:API_HEADERS,
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+        system:`You are a nutrition database. Return ONLY a valid JSON array (no markdown, no backticks) of 1-4 foods with accurate USDA nutritional info. Format: [{"name":"Food (serving size)","cal":0,"pro":0,"carb":0,"fat":0,"serving":"e.g. 1 cup, 100g"}]. Return only the JSON array, nothing else.`,
+        messages:[{role:'user',content:`Nutrition for: "${q}"`}]})
+    });
+    const data=await res.json();
+    const raw=data.content?.[0]?.text||'[]';
+    let results;
+    try{results=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){results=[];}
+    if(!Array.isArray(results)||!results.length){
+      panel.innerHTML=`<div class="ai-status" style="color:#FCA5A5;font-size:12px;font-weight:800;">No results — try different keywords.</div>`;
+    }else{
+      const mealSel=`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px;"><span style="font-size:10px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;">Add to:</span>
+        ${['breakfast','snack1','lunch','snack2','dinner','evening'].map(m=>`<button class="meal-sel-btn${m===topAiMealTarget?' selected':''}" data-meal="${m}" onclick="selectTopAiMeal(this)">${m==='breakfast'?'🌅 Breakfast':m==='snack1'?'🍎 Snack 1':m==='lunch'?'🥗 Lunch':m==='snack2'?'⚡ Snack 2':m==='dinner'?'🍽 Dinner':'🌙 Evening'}</button>`).join('')}
+      </div>`;
+      panel.innerHTML=`<div class="ai-status" style="color:#818CF8;font-size:11px;font-weight:800;margin-bottom:6px;">✨ AI found ${results.length} result${results.length>1?'s':''}</div>`+mealSel+
+        results.map(r=>`<div class="ai-result-item" onclick="addTopAiResult('${(r.name||'').replace(/'/g,"\\'")}',${r.cal||0},${r.pro||0},${r.carb||0},${r.fat||0})">
+          <div><div class="ai-res-name">${r.name}</div><div class="ai-res-macros">P:${r.pro||0}g · C:${r.carb||0}g · F:${r.fat||0}g · ${r.serving||''}</div></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span class="ai-res-cal">${r.cal||0}</span><button class="food-db-add" onclick="event.stopPropagation();addTopAiResult('${(r.name||'').replace(/'/g,"\\'")}',${r.cal||0},${r.pro||0},${r.carb||0},${r.fat||0})">+</button></div>
+        </div>`).join('');
+    }
+  }catch(err){
+    panel.innerHTML=`<div class="ai-status" style="color:#FCA5A5;font-size:12px;font-weight:800;">⚠️ Search error — check connection.</div>`;
+  }
+  btn.disabled=false; btn.textContent='AI Search';
+}
+function selectTopAiMeal(btn){
+  topAiMealTarget=btn.dataset.meal;
+  document.querySelectorAll('#topAiResults .meal-sel-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function addTopAiResult(name,cal,pro,carb,fat){
+  quickAdd(topAiMealTarget,name,cal,pro,carb,fat);
+  showToast(`✓ ${name} → ${topAiMealTarget}`);
+}
+
+// ══════════════════════════════════════════════════════
+//  AI CAMERA CALORIE ANALYZER
+// ══════════════════════════════════════════════════════
+let camImageBase64=null;
+let camMealTarget='breakfast';
+
+function openCamModal(){document.getElementById('camModal').classList.add('open');}
+function closeCamModal(){document.getElementById('camModal').classList.remove('open');}
+function handleCamOverlayClick(e){if(e.target===document.getElementById('camModal'))closeCamModal();}
+
+function selectCamMeal(btn){
+  camMealTarget=btn.dataset.meal;
+  document.querySelectorAll('.cam-meal-sel .meal-sel-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function handleCamFile(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const dataUrl=ev.target.result;
+    camImageBase64=dataUrl.split(',')[1];
+    const img=document.getElementById('camPreviewImg');
+    img.src=dataUrl;
+    img.style.display='block';
+    document.getElementById('camPreviewWrap').style.display='none';
+    document.getElementById('camChangeBtnWrap').style.display='block';
+    document.getElementById('camAnalyzeBtn').disabled=false;
+    document.getElementById('camResults').classList.remove('show');
+    document.getElementById('camResultsList').innerHTML='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCamImage(){
+  camImageBase64=null;
+  document.getElementById('camPreviewImg').style.display='none';
+  document.getElementById('camPreviewWrap').style.display='block';
+  document.getElementById('camChangeBtnWrap').style.display='none';
+  document.getElementById('camAnalyzeBtn').disabled=true;
+  document.getElementById('camFileInput').value='';
+  document.getElementById('camResults').classList.remove('show');
+}
+
+async function analyzeImage(){
+  if(!camImageBase64){showToast('📷 Take a photo first!');return;}
+  const btn=document.getElementById('camAnalyzeBtn');
+  const txtEl=document.getElementById('camAnalyzeBtnTxt');
+  const resultsEl=document.getElementById('camResults');
+  const statusEl=document.getElementById('camStatus');
+  const listEl=document.getElementById('camResultsList');
+  btn.disabled=true; txtEl.textContent='⏳ Analyzing your food…';
+  resultsEl.classList.add('show');
+  statusEl.textContent='🔍 AI is identifying your food and estimating nutrition…';
+  listEl.innerHTML='';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:API_HEADERS,
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        system:`You are a nutrition expert. Analyze the food in the image and return a JSON array (no markdown, no backticks) of identified food items with nutrition estimates. Format: [{"name":"Food item (portion)","cal":0,"pro":0,"carb":0,"fat":0,"confidence":"high/medium/low","note":"brief note"}]. Be specific about portion sizes visible. Use realistic USDA values. If multiple items are visible, list each separately. Return ONLY the JSON array.`,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:camImageBase64}},
+          {type:'text',text:'Identify all food items in this image and estimate calories and macros for each. Return JSON array only.'}
+        ]}]
+      })
+    });
+    const data=await res.json();
+    if(data.error){throw new Error(data.error.message);}
+    const raw=data.content?.[0]?.text||'[]';
+    let results;
+    try{results=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){results=[];}
+    if(!Array.isArray(results)||!results.length){
+      statusEl.innerHTML='<span style="color:#FCA5A5;">⚠️ Could not identify food — try a clearer photo.</span>';
+    }else{
+      const totalCal=results.reduce((s,r)=>s+(r.cal||0),0);
+      statusEl.innerHTML=`✅ Found ${results.length} food item${results.length>1?'s':''} · ~${totalCal} total calories`;
+      listEl.innerHTML=results.map(r=>`
+        <div class="cam-result-food" onclick="addCamResult('${(r.name||'').replace(/'/g,"\\'")}',${r.cal||0},${r.pro||0},${r.carb||0},${r.fat||0})">
+          <div>
+            <div class="cam-result-name">${r.name}</div>
+            <div class="cam-result-macros">P:${r.pro||0}g · C:${r.carb||0}g · F:${r.fat||0}g${r.note?` · ${r.note}`:''}</div>
+            ${r.confidence==='low'?'<div style="font-size:10px;color:var(--orange);margin-top:2px;">⚠️ Low confidence estimate</div>':''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="cam-result-cal">${r.cal||0}</span>
+            <button class="cam-result-add" onclick="event.stopPropagation();addCamResult('${(r.name||'').replace(/'/g,"\\'")}',${r.cal||0},${r.pro||0},${r.carb||0},${r.fat||0})">+</button>
+          </div>
+        </div>`).join('');
+      if(results.length>1){
+        const totalPro=results.reduce((s,r)=>s+(r.pro||0),0);
+        const totalCarb=results.reduce((s,r)=>s+(r.carb||0),0);
+        const totalFat=results.reduce((s,r)=>s+(r.fat||0),0);
+        listEl.innerHTML+=`<div style="margin-top:10px;padding:10px 14px;background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.2);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;">
+          <div><div style="font-size:12px;font-weight:800;color:var(--gold2);">+ Add All Items</div><div style="font-size:10px;color:var(--muted);">P:${totalPro}g · C:${totalCarb}g · F:${totalFat}g</div></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);">${totalCal}</span>
+          <button onclick="addAllCamResults(${JSON.stringify(results).replace(/"/g,'&quot;')})" style="background:linear-gradient(135deg,var(--gold),var(--orange));border:none;border-radius:6px;padding:6px 13px;color:#000;font-family:'Nunito',sans-serif;font-size:12px;font-weight:900;cursor:pointer;">Add All</button></div>
+        </div>`;
+      }
+    }
+  }catch(err){
+    statusEl.innerHTML=`<span style="color:#FCA5A5;">⚠️ Analysis failed — ${err.message||'check connection'}</span>`;
+  }
+  btn.disabled=false; txtEl.textContent='✨ Analyze Again';
+}
+
+function addCamResult(name,cal,pro,carb,fat){
+  quickAdd(camMealTarget,name,cal,pro,carb,fat);
+  showToast(`✓ ${name} → ${camMealTarget}`);
+}
+function addAllCamResults(results){
+  results.forEach(r=>quickAdd(camMealTarget,r.name,r.cal||0,r.pro||0,r.carb||0,r.fat||0));
+  showToast(`✓ ${results.length} items added to ${camMealTarget}`);
+  closeCamModal();
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+loadState();
+const today=new Date();
+let defaultDay='2026-03-04';
+if(today.getFullYear()===2026&&today.getMonth()===2&&today.getDate()>=4&&today.getDate()<=31){
+  defaultDay=`2026-03-${String(today.getDate()).padStart(2,'0')}`;
+}
+currentDay=defaultDay;
+buildNav();
+loadGoalsUI();
+renderAll();
+renderChecklist();
+const dt0=new Date(2026,2,parseInt(currentDay.split('-')[2]));
+const dows0=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+document.getElementById('headerDate').textContent=`${dows0[dt0.getDay()]}, March ${dt0.getDate()}`;
+updateHeaderSub(dt0.getDay());
+setTimeout(()=>{
+  const btn=document.getElementById('navbtn-'+currentDay);
+  if(btn)btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+},100);
+
+// ── PWA ──────────────────────────────────────────────
+(function(){
+  // Use real manifest.json file
+  const existingManifest = document.querySelector('link[rel="manifest"]');
+  if(!existingManifest){
+    const link = document.createElement('link');
+    link.rel = 'manifest';
+    link.href = './manifest.json';
+    document.head.appendChild(link);
+  }
+})();
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!localStorage.getItem('installDismissed')){document.getElementById('installBanner').style.display='flex';}});
+window.addEventListener('appinstalled',()=>{document.getElementById('installBanner').style.display='none';showToast('✅ Sprint Fuel installed!');});
+document.getElementById('installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBanner').style.display='none';});
+document.getElementById('dismissInstall').addEventListener('click',()=>{document.getElementById('installBanner').style.display='none';localStorage.setItem('installDismissed','1');});
+if(window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone)document.body.classList.add('is-pwa');
+window.addEventListener('online',()=>document.body.classList.remove('offline'));
+window.addEventListener('offline',()=>document.body.classList.add('offline'));
+if(!navigator.onLine)document.body.classList.add('offline');
+</script>
+</body>
+</html>
